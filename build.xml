@@ -7,12 +7,11 @@
     <taskdef name="virtual-host-create" classpath="${struct.build.tasks}" classname="VirtualHostCreateTask"/>
   </target>
 
-  <target name="verify" description="Verify custom code" depends="init,
-                                                                  clear,
-                                                                  lint-php,
-                                                                  test-forks" />
+  <target name="verify" description="Verify code" depends="init,
+                                                           clear,
+                                                           lint-php" />
 
-  <target name="make" depends="clear" description="Run drush make">
+  <target name="make" depends="init, clear" description="Run drush make">
     <echo>Project make started</echo>
     <drush command="make" assume="yes" bin="${env.drush}">
        <param>${project.make.file}</param>
@@ -21,7 +20,7 @@
     <echo>Project make finished</echo>
   </target>
 
-  <target name="install" depends="make,db_drop" description="Install site">
+  <target name="install" depends="init, verify, make, db_drop" description="Install site">
     <echo>Project installation started</echo>
     <drush command="site-install" assume="yes" bin="${env.drush}">
       <option name="root">${struct.code}</option>
@@ -40,7 +39,6 @@
     </drush>
 
     <phingcall target="create_settings"/>
-
     <chmod file="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777" />
     <symlink target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom" />
     <symlink target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom" />
@@ -192,8 +190,6 @@ called from `init` target. -->
     <property name="struct.root" value="${env.WORKSPACE}${project.root}"/>
     <property name="struct.build" value="${struct.root}/${build}"/>
     <property name="struct.build.tasks" value="${struct.build}/tasks"/>
-    <!--<import file="${struct.build.tasks}/drupal.xml" />-->
-    <!--<import file="${struct.build.tasks}/hosts.xml" />-->
 
     <property name="struct.build.templates" value="${struct.build}${project.build.templates.dir}"/>
     <property name="struct.code" value="${struct.root}${project.code.dir}"/>
@@ -203,6 +199,11 @@ called from `init` target. -->
     <property name="struct.report.phplint" value="${struct.report}/${project.report.phplint.dir}"/>
     <property name="struct.logs" value="${struct.root}${project.logs.dir}"/>
     <property name="struct.tools" value="${struct.root}${project.tools.dir}"/>
+
+    <property name="struct.custom.modules" value="${struct.root}${project.custom.modules}"/>
+    <property name="struct.custom.themes" value="${struct.root}${project.custom.themes}"/>
+    
+    <property name="struct.drake.scripts.dir" value="${struct.root}${project.drake.scripts.dir}"/>
 
     <if>
       <equals arg1="${project.settings.use_default_dir}" arg2="true" casesensitive="false" trim="true"/>
@@ -222,19 +223,20 @@ called from `init` target. -->
     <property name="struct.code.settings" value="${struct.code}/sites"/>
     <property name="struct.code.settings.source.file"
               value="${struct.build.templates}/${project.build.templates.settings}"/>
-
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0777" />
     <copy file="${struct.code.settings.source.file}"
           tofile="${struct.code.settings}/${drupal.site.subdir}/settings.php" overwrite="true">
       <filterchain>
           <expandproperties />
       </filterchain>
     </copy>
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/settings.php" mode="0755" />
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0755" />
   </target>
 
 
   <target name="init_db" description="Create DB from dump">
     <echo>Project sql dump import started</echo>
-    <phingcall target="db_create"/>
     <phingcall target="db_drop"/>
     <drush command="sql-query" bin="${env.drush}">
       <option name="input-file">'${struct.root}${project.sql.dir}/${project.sql.file}'</option>
@@ -244,7 +246,7 @@ called from `init` target. -->
     <echo>Project sql dump import finished</echo>
   </target>
 
-  <target name="db_drop" depends="init">
+  <target name="db_drop" depends="init, create_settings, db_create">
     <drush command="sql-drop" bin="${env.drush}" assume="yes">
       <option name="root">'${struct.code}'</option>
     </drush>
@@ -385,14 +387,14 @@ called from `init` target. -->
 
   <target name="lint-php"
           description="Check PHP files for syntax errors using PHPLint"
-          depends="init">
+          depends="init, make">
     <mkdir dir="${struct.report.phplint}"/>
     <phplint haltonfailure="true" tofile="${struct.report.phplint}/phplint.xml" level="${project.phplint.level}">
       <fileset refid="src.php" />
     </phplint>
   </target>
 
-  <target name="drake_install" description="Install drake migration">
+  <target name="drake_install" depends="init" description="Install drake migration">
     <drush command="pm-enable" assume="yes" bin="${env.drush}">
       <option name="root">${struct.code}</option>
       <param>drush_migrate</param>
