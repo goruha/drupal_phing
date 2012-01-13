@@ -1,80 +1,16 @@
 <?xml version="1.0"?>
 <project default="test-forks">
-  <property environment="env"/>
-  <condition property="env.WORKSPACE" value="">
-    <not>
-      <isset property="env.WORKSPACE"/>
-    </not>
-  </condition>
 
-  <!--
-    Profile property define file contains properties for current build.
-    It is usefull for different developers that have different systems and needs different configs.
-    If profile is not defined use default.
-  -->
-  <condition property="profile" value="default">
-    <not>
-      <isset property="profile"/>
-    </not>
-  </condition>
-
-  <!-- Load profile specified properties -->
-  <property name="build" value="build"/>
-
-  <!-- Load profile specified properties -->
-  <property file="${build}/properties/${profile}.prop"/>
-  <!-- Load project specified properties -->
-  <property file="${build}/properties/project.prop"/>
-  
-  <!-- SVN structure dependent settings -->
-  <property name="struct.root" value="${env.WORKSPACE}${project.root}"/>
-  <property name="struct.build" value="${struct.root}/${build}"/>
-  <property name="struct.build.tasks" value="${struct.build}/tasks"/>
-  <!--<import file="${struct.build.tasks}/drupal.xml" />-->
-  <!--<import file="${struct.build.tasks}/hosts.xml" />-->
-
-  <property name="struct.build.templates" value="${struct.build}${project.build.templates.dir}"/>
-  <property name="struct.code" value="${struct.root}${project.code.dir}"/>
-  <property name="struct.tmp" value="${struct.root}${project.tmp.dir}"/>
-  <property name="struct.report" value="${struct.root}${project.report.dir}"/>
-  <property name="struct.report.tests" value="${struct.report}/${project.report.tests.dir}"/>
-
-  <property name="struct.custom.modules" value="${struct.root}${project.custom.modules}"/>
-  <property name="struct.custom.themes" value="${struct.root}${project.custom.themes}"/>
-
-
-  <property name="struct.drake.scripts.dir" value="${struct.root}${project.drake.scripts.dir}"/>
-
-  <if>
-      <equals arg1="${project.settings.use_default_dir}" arg2="true"  casesensitive="false" trim="true" />
-    <then>
-      <property name="drupal.site.subdir" value="default"/>
-    </then>
-    <else>
-      <property name="drupal.site.subdir" value="${env.host.name}"/>
-    </else>
-  </if>
-
-  <property name="struct.build.templates.server" value="${struct.build.templates}/${env.server}"/>
-  <property name="drupal.files.dir" value="/sites/${drupal.site.subdir}/files"/>
-
-  <taskdef name="drush" classpath="${struct.build.tasks}" classname="DrushTask" />
-  
-  <taskdef name="hosts-add" classpath="${struct.build.tasks}" classname="HostsAddTask" />
-  <taskdef name="virtual-host-create" classpath="${struct.build.tasks}" classname="VirtualHostCreateTask" />
-
-  <target name="clear" description="Clear dirs">
-    <if>
-      <available file="${struct.code}/sites/${drupal.site.subdir}"/>
-      <then>
-        <chmod file="${struct.code}/sites/${drupal.site.subdir}" mode="0777" quiet="true" failonerror="false"/>
-      </then>
-    </if>
-    <delete dir="${struct.code}" includeemptydirs="true" failonerror="true"/>
-    <delete dir="${struct.tmp}" includeemptydirs="true" failonerror="true"/>
-    <delete dir="${struct.report}" includeemptydirs="true" failonerror="true"/>
-    <echo>Cleaned directory</echo>
+  <target name="init" depends="load-properties, setup-filesets" description="Init resources">
+    <taskdef name="drush" classpath="${struct.build.tasks}" classname="DrushTask"/>
+    <taskdef name="hosts-add" classpath="${struct.build.tasks}" classname="HostsAddTask"/>
+    <taskdef name="virtual-host-create" classpath="${struct.build.tasks}" classname="VirtualHostCreateTask"/>
   </target>
+
+  <target name="verify" description="Verify custom code" depends="init,
+                                                                  clear,
+                                                                  lint-php,
+                                                                  test-forks" />
 
   <target name="make" depends="clear" description="Run drush make">
     <echo>Project make started</echo>
@@ -103,6 +39,8 @@
       <param>default</param>
     </drush>
 
+    <phingcall target="create_settings"/>
+
     <chmod file="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777" />
     <symlink target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom" />
     <symlink target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom" />
@@ -112,37 +50,214 @@
     <echo>Project installation finished</echo>
   </target>
 
+
+  <target name="clear" description="Clear dirs">
+    <if>
+      <available file="${struct.code}/sites/${drupal.site.subdir}"/>
+      <then>
+        <chmod file="${struct.code}/sites/${drupal.site.subdir}" mode="0777" quiet="true" failonerror="false"/>
+      </then>
+    </if>
+    <delete dir="${struct.code}" includeemptydirs="true" failonerror="true"/>
+    <delete dir="${struct.tmp}" includeemptydirs="true" failonerror="true"/>
+    <delete dir="${struct.report}" includeemptydirs="true" failonerror="true"/>
+    <echo>Cleaned directory</echo>
+  </target>
+
+<!-- ### Setup file sets
+
+Setup file sets - patterns for different aspects of the source code.
+These are used in other targets.
+
+This is part of the initialization of the build. This target should only be
+called from `init` target. -->
+  <target name="setup-filesets"
+          depends="load-properties">
+    <!-- Define pattern sets for future reference -->
+
+    <!-- PHP files -->
+    <patternset id="php">
+      <include name="**/*.php" />
+      <include name="**/*.module" />
+      <include name="**/*.install" />
+      <include name="**/*.inc" />
+      <include name="**/*.profile" />
+      <include name="**/*.test" />
+    </patternset>
+
+    <!-- Javascript files -->
+    <patternset id="js">
+      <include name="**/*.js" />
+      <!-- Minimized JavaScript files should not be analyzed.
+           In their optimized state they can not be expexted
+           to conform to coding standards. -->
+      <exclude name="**/*.min.js" />
+    </patternset>
+
+    <!-- CSS files -->
+    <patternset id="css">
+      <include name="**/*.css" />
+    </patternset>
+
+    <!-- Directories for community contributed code. We exclude these from
+         code analysis as we cannot be held responsible for any problems
+         here. -->
+    <patternset id="contrib">
+      <exclude name="**/contrib/**/*.*" />
+      <exclude name="**/libraries/**/*.*" />
+    </patternset>
+
+    <patternset id="custom">
+      <include name="**/custom/**/*.*" />
+    </patternset>
+
+
+    <!-- We exclude generated files from We exclude these from code analysis
+         as we cannot be held responsible for any problems here. -->
+    <patternset id="generated">
+      <exclude name="**/*.features.*" />
+      <exclude name="**/*.field_group.inc" />
+      <exclude name="**/*.layouts.inc" />
+      <exclude name="**/*.pages_default.inc" />
+      <exclude name="**/*.panels_default.inc" />
+      <exclude name="**/*.strongarm.inc" />
+      <exclude name="**/*.views_default.inc" />
+    </patternset>
+
+    <!-- Define file sets for future reference -->
+
+    <!-- All PHP files -->
+    <fileset id="src.php" dir="${struct.code}">
+      <patternset refid="php"/>
+    </fileset>
+
+    <!-- Custom PHP files -->
+    <fileset id="src.php.custom" dir="${struct.code}">
+      <patternset refid="php"/>
+      <patternset refid="generated"/>
+    </fileset>
+
+    <!-- All Javascript files -->
+    <fileset id="src.js" dir="${struct.code}">
+      <patternset refid="js" />
+    </fileset>
+
+    <!-- Custom Javascript files -->
+    <fileset id="src.js.custom" dir="${struct.code}">
+      <patternset refid="js" />
+    </fileset>
+
+    <!-- All CSS files -->
+    <fileset id="src.css" dir="${struct.code}">
+      <patternset refid="css" />
+    </fileset>
+
+    <!-- Custom CSS files -->
+    <fileset id="src.css.custom" dir="${struct.code}">
+      <patternset refid="css" />
+      <patternset refid="contrib" />
+    </fileset>
+
+  </target>
+
+
+  <target name="load-properties">
+    <property environment="env"/>
+    <condition property="env.WORKSPACE" value="">
+      <not>
+        <isset property="env.WORKSPACE"/>
+      </not>
+    </condition>
+
+    <!--
+      Profile property define file contains properties for current build.
+      It is usefull for different developers that have different systems and needs different configs.
+      If profile is not defined use default.
+    -->
+    <condition property="profile" value="default">
+      <not>
+        <isset property="profile"/>
+      </not>
+    </condition>
+
+    <!-- Load profile specified properties -->
+    <property name="build" value="build"/>
+
+    <!-- Load profile specified properties -->
+    <property file="${build}/properties/${profile}.prop"/>
+    <!-- Load project specified properties -->
+    <property file="${build}/properties/project.prop"/>
+
+    <!-- SVN structure dependent settings -->
+    <property name="struct.root" value="${env.WORKSPACE}${project.root}"/>
+    <property name="struct.build" value="${struct.root}/${build}"/>
+    <property name="struct.build.tasks" value="${struct.build}/tasks"/>
+    <!--<import file="${struct.build.tasks}/drupal.xml" />-->
+    <!--<import file="${struct.build.tasks}/hosts.xml" />-->
+
+    <property name="struct.build.templates" value="${struct.build}${project.build.templates.dir}"/>
+    <property name="struct.code" value="${struct.root}${project.code.dir}"/>
+    <property name="struct.tmp" value="${struct.root}${project.tmp.dir}"/>
+    <property name="struct.report" value="${struct.root}${project.report.dir}"/>
+    <property name="struct.report.tests" value="${struct.report}/${project.report.tests.dir}"/>
+    <property name="struct.report.phplint" value="${struct.report}/${project.report.phplint.dir}"/>
+    <property name="struct.logs" value="${struct.root}${project.logs.dir}"/>
+    <property name="struct.tools" value="${struct.root}${project.tools.dir}"/>
+
+    <if>
+      <equals arg1="${project.settings.use_default_dir}" arg2="true" casesensitive="false" trim="true"/>
+      <then>
+        <property name="drupal.site.subdir" value="default"/>
+      </then>
+      <else>
+        <property name="drupal.site.subdir" value="${env.host.name}"/>
+      </else>
+    </if>
+
+    <property name="struct.build.templates.server" value="${struct.build.templates}/${env.server}"/>
+    <property name="drupal.files.dir" value="/sites/${drupal.site.subdir}/files"/>
+  </target>
+
+  <target name="create_settings" description="Creates Drupal settings for this domain" depends="init">
+    <property name="struct.code.settings" value="${struct.code}/sites"/>
+    <property name="struct.code.settings.source.file"
+              value="${struct.build.templates}/${project.build.templates.settings}"/>
+
+    <copy file="${struct.code.settings.source.file}"
+          tofile="${struct.code.settings}/${drupal.site.subdir}/settings.php" overwrite="true">
+      <filterchain>
+          <expandproperties />
+      </filterchain>
+    </copy>
+  </target>
+
+
   <target name="init_db" description="Create DB from dump">
-    <property name="db.dump.dir" value="${struct.root}${project.sql.dir}"/>
-    <phingcall target="db_drop"/>
-    <phingcall target="db_create"/>
     <echo>Project sql dump import started</echo>
-    <pdo url="${env.db.driver}:host=${env.db.host};dbname=${env.db.name}"
-         userId="${env.db.user}" password="${env.db.password}"
-         onerror="abort">
-      <fileset dir="${db.dump.dir}">
-        <include name="${project.sql.mask}"/>
-      </fileset>
-    </pdo>
+    <phingcall target="db_create"/>
+    <phingcall target="db_drop"/>
+    <drush command="sql-query" bin="${env.drush}">
+      <option name="input-file">'${struct.root}${project.sql.dir}/${project.sql.file}'</option>
+      <option name="strict">'0'</option>
+      <option name="root">'${struct.code}'</option>
+    </drush>
     <echo>Project sql dump import finished</echo>
   </target>
 
-  <target name="db_drop">
-       <pdo url="${env.db.driver}:host=${env.db.host}"
-            userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
-            onerror="abort">
-        DROP DATABASE IF EXISTS ${env.db.name};
-       </pdo>
-       <echo>Project db droped</echo>
+  <target name="db_drop" depends="init">
+    <drush command="sql-drop" bin="${env.drush}" assume="yes">
+      <option name="root">'${struct.code}'</option>
+    </drush>
+    <echo>Project db droped</echo>
   </target>
 
-  <target name="db_create">
-       <pdo url="${env.db.driver}:host=${env.db.host}"
-            userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
-            onerror="abort">
-        CREATE DATABASE ${env.db.name};
-       </pdo>
-      <echo>Project db created</echo>
+  <target name="db_create" depends="init">
+    <pdo url="${env.db.driver}:host=${env.db.host}"
+         userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
+         onerror="abort">
+      CREATE DATABASE IF NOT EXISTS ${env.db.name};
+    </pdo>
+    <echo>Project db created</echo>
   </target>
 
   <target name="host_install" description="Create virtual host for integrate project">
@@ -225,6 +340,58 @@
     <echo>Here will be code to run test</echo>
   </target>
 
+  <target name="test-forks" description="Check if project contains forks" depends="init, clear">
+    <drush command="pm-refresh" bin="${env.drush}">
+      <option name="root">"${struct.code}"</option>
+    </drush>
+    <delete dir="${struct.tmp}/code" includeemptydirs="true" failonerror="true"/>
+    <delete file="${struct.report.tests}/${project.report.fork.file}"/>
+    <mkdir dir="${struct.report.tests}"/>
+    <echo>Check for forks starts</echo>
+    <if>
+      <istrue value="${project.make.no.patches.txt}"/>
+      <then>
+        <drush command="make" assume="yes" bin="${env.drush}">
+          <param>'${project.make.file}'</param>
+          <param>'${struct.tmp}/code'</param>
+          <option name="no-patch-txt"/>
+        </drush>
+      </then>
+      <else>
+        <drush command="make" assume="yes" bin="${env.drush}">
+          <param>'${project.make.file}'</param>
+          <param>'${struct.tmp}/code"</param>
+        </drush>
+      </else>
+    </if>
+
+    <phingcall target="drupal_cc"/>
+
+    <drush command="pm-enable" assume="yes" bin="${env.drush}">
+      <param>'hacked_make'</param>
+      <option name="root">'${struct.code}'</option>
+    </drush>
+
+    <drush command="hacked-make-list-projects" bin="${env.drush}">
+      <param>'${struct.tmp}/code'</param>
+      <option name="force-rebuild"/>
+      <option name="root">'${struct.code}'</option>
+      <option name="xml">'${struct.report.tests}/${project.report.fork.file}'</option>
+      <option name="exclude">'${project.report.fork.exclude}'</option>
+    </drush>
+
+    <echo>Check for forks finished</echo>
+  </target>
+
+  <target name="lint-php"
+          description="Check PHP files for syntax errors using PHPLint"
+          depends="init">
+    <mkdir dir="${struct.report.phplint}"/>
+    <phplint haltonfailure="true" tofile="${struct.report.phplint}/phplint.xml" level="${project.phplint.level}">
+      <fileset refid="src.php" />
+    </phplint>
+  </target>
+
   <target name="drake_install" description="Install drake migration">
     <drush command="pm-enable" assume="yes" bin="${env.drush}">
       <option name="root">${struct.code}</option>
@@ -237,11 +404,7 @@
       <param>drush_drake_scripts_dir</param>
       <param>${struct.drake.scripts.dir}</param>
     </drush>
-
-    <drush command="cc" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-      <param>all</param>
-    </drush>
+    <phingcall target="drupal_cc"/>
   </target>
 
 
@@ -256,12 +419,16 @@
     <drush command="features-revert-all" assume="yes" bin="${env.drush}">
       <option name="root">${struct.code}</option>
     </drush>
-    <drush command="cc" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-      <param>all</param>
-    </drush>
+    <phingcall target="drupal_cc"/>
     <drush command="features-revert-all" assume="yes" bin="${env.drush}">
       <option name="root">${struct.code}</option>
+    </drush>
+  </target>
+
+  <target name="drupal_cc" depends="init">
+    <drush command="cc" bin="${env.drush}">
+      <param>all</param>
+      <option name="root">"${struct.code}"</option>
     </drush>
   </target>
 </project>

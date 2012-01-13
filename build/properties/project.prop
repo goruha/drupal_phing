@@ -27,17 +27,15 @@ project.code.dir=/code
 project.sql.dir=/db
 
 ########################################################
-# Mask to select db dump files
+# File to select db dump file
 #
 # example 
 #
-# project.sql.mask= db.sql
+# project.sql.file= db.sql
 # Will import db.sql file to DB
 #
-# project.sql.mask= *.sql
-# Will import all files with sql extention from project.sql.dir
 ########################################################
-project.sql.mask=*.mysql
+project.sql.file=db.mysql
 
 ########################################################
 # Drush make file
@@ -189,6 +187,26 @@ project.report.dir=/reports
 # will be ${project.report.dir}/${project.report.tests.dir}
 ########################################################
 project.report.tests.dir=tests
+
+########################################################
+# directory contains tests reports files
+#
+# example
+#
+# project.report.phplint.dir= /
+# will be ${project.report.dir}/${project.report.phplint.dir}
+########################################################
+project.report.phplint.dir=phplint
+
+########################################################
+# Control the level at which phplint reports status messages.
+# One of error, warning, info, verbose, debug.
+#
+# example
+#
+# project.phplint.level=info
+########################################################
+project.phplint.level=warning
 
 ########################################################
 # Fork report file
