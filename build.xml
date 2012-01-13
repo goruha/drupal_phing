@@ -108,6 +108,7 @@
     <symlink target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom" />
     <phingcall target="drake_install"/>
     <phingcall target="drake_process"/>
+    <phingcall target="drush_revert_all"/>
     <echo>Project installation finished</echo>
   </target>
 
@@ -246,6 +247,20 @@
 
   <target name="drake_process" description="Run drake migration">
     <drush command="drake" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+    </drush>
+  </target>
+
+
+  <target name="drush_revert_all" description="Revert all drupal objects">
+    <drush command="features-revert-all" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+    </drush>
+    <drush command="cc" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+      <param>all</param>
+    </drush>
+    <drush command="features-revert-all" assume="yes" bin="${env.drush}">
       <option name="root">${struct.code}</option>
     </drush>
   </target>
