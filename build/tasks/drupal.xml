@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<project name="drupal.settings">
+<!--
+  Create settings file for property host
+!-->
+  <macrodef name="drupal-create-settings">
+    <attribute name="site-dir"/>
+    <attribute name="source"/>
+    <attribute name="db-name"/>
+    <attribute name="db-user"/>
+    <attribute name="db-pass"/>
+    <attribute name="db-host"/>
+    <attribute name="mask-db-name" default="ant|db_name"/>
+    <attribute name="mask-db-user" default="ant|db_user"/>
+    <attribute name="mask-db-pass" default="ant|db_password"/>
+    <attribute name="mask-db-host" default="ant|db_host"/>
+    <sequential>
+    <delete dir="@{site-dir}" quiet="true"/>
+    <mkdir dir="@{site-dir}"/>
+    <copy file="@{source}" tofile="@{site-dir}/settings.php" >
+      <filterchain>
+        <replacetokens>
+          <token key="@{mask-db-user}" value="${env.db.user}"/>
+          <token key="@{mask-db-pass}" value="${env.db.password}"/>
+          <token key="@{mask-db-host}" value="${env.db.host}"/>
+          <token key="@{mask-db-name}" value="${env.db.name}" />
+        </replacetokens>
+      </filterchain>
+    </copy>
+    </sequential>
+  </macrodef>  
+ </project>

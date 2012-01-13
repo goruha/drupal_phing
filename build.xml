@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<project default="test-forks">
+  <property environment="env"/>
+  <condition property="env.WORKSPACE" value="">
+    <not>
+      <isset property="env.WORKSPACE"/>
+    </not>
+  </condition>
+
+  <!--
+    Profile property define file contains properties for current build.
+    It is usefull for different developers that have different systems and needs different configs.
+    If profile is not defined use default.
+  -->
+  <condition property="profile" value="default">
+    <not>
+      <isset property="profile"/>
+    </not>
+  </condition>
+
+  <!-- Load profile specified properties -->
+  <property name="build" value="build"/>
+
+  <!-- Load profile specified properties -->
+  <property file="${build}/properties/${profile}.prop"/>
+  <!-- Load project specified properties -->
+  <property file="${build}/properties/project.prop"/>
+  
+  <!-- SVN structure dependent settings -->
+  <property name="struct.root" value="${env.WORKSPACE}${project.root}"/>
+  <property name="struct.build" value="${struct.root}/${build}"/>
+  <property name="struct.build.tasks" value="${struct.build}/tasks"/>
+  <!--<import file="${struct.build.tasks}/drupal.xml" />-->
+  <!--<import file="${struct.build.tasks}/hosts.xml" />-->
+
+  <property name="struct.build.templates" value="${struct.build}${project.build.templates.dir}"/>
+  <property name="struct.code" value="${struct.root}${project.code.dir}"/>
+  <property name="struct.tmp" value="${struct.root}${project.tmp.dir}"/>
+  <property name="struct.report" value="${struct.root}${project.report.dir}"/>
+  <property name="struct.report.tests" value="${struct.report}/${project.report.tests.dir}"/>
+
+  <property name="struct.custom.modules" value="${struct.root}${project.custom.modules}"/>
+  <property name="struct.custom.themes" value="${struct.root}${project.custom.themes}"/>
+
+
+  <property name="struct.drake.scripts.dir" value="${struct.root}${project.drake.scripts.dir}"/>
+
+  <if>
+      <equals arg1="${project.settings.use_default_dir}" arg2="true"  casesensitive="false" trim="true" />
+    <then>
+      <property name="drupal.site.subdir" value="default"/>
+    </then>
+    <else>
+      <property name="drupal.site.subdir" value="${env.host.name}"/>
+    </else>
+  </if>
+
+  <property name="struct.build.templates.server" value="${struct.build.templates}/${env.server}"/>
+  <property name="drupal.files.dir" value="/sites/${drupal.site.subdir}/files"/>
+
+  <taskdef name="drush" classpath="${struct.build.tasks}" classname="DrushTask" />
+  
+  <taskdef name="hosts-add" classpath="${struct.build.tasks}" classname="HostsAddTask" />
+  <taskdef name="virtual-host-create" classpath="${struct.build.tasks}" classname="VirtualHostCreateTask" />
+
+  <target name="clear" description="Clear dirs">
+    <if>
+      <available file="${struct.code}/sites/${drupal.site.subdir}"/>
+      <then>
+        <chmod file="${struct.code}/sites/${drupal.site.subdir}" mode="0777" quiet="true" failonerror="false"/>
+      </then>
+    </if>
+    <delete dir="${struct.code}" includeemptydirs="true" failonerror="true"/>
+    <delete dir="${struct.tmp}" includeemptydirs="true" failonerror="true"/>
+    <delete dir="${struct.report}" includeemptydirs="true" failonerror="true"/>
+    <echo>Cleaned directory</echo>
+  </target>
+
+  <target name="make" depends="clear" description="Run drush make">
+    <echo>Project make started</echo>
+    <drush command="make" assume="yes" bin="${env.drush}">
+       <param>${project.make.file}</param>
+       <param>${struct.code}</param>
+    </drush>
+    <echo>Project make finished</echo>
+  </target>
+
+  <target name="install" depends="make,db_drop" description="Install site">
+    <echo>Project installation started</echo>
+    <drush command="site-install" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+      <option name="db-url">${project.drupal.db.driver}://${env.db.user}:${env.db.password}@${env.db.host}/${env.db.name}</option>
+      <option name="db-su">${env.db.user.sudo}</option>
+      <option name="db-su-pw">${env.db.user.sudo.password}</option>
+      <option name="account-name">${project.drupal.admin.name}</option>
+      <option name="account-pass">${project.drupal.admin.password}</option>
+      <option name="account-mail">${project.drupal.admin.mail}</option>
+      <option name="locale">${project.drupal.locale}</option>
+      <option name="clean-url">${project.drupal.clean_url}</option>
+      <option name="site-name">${project.drupal.site.name}</option>
+      <option name="site-mail">${project.drupal.site.mail}</option>
+      <option name="sites-subdir">${drupal.site.subdir}</option>
+      <param>default</param>
+    </drush>
+
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777" />
+    <symlink target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom" />
+    <symlink target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom" />
+    <phingcall target="drake_install"/>
+    <phingcall target="drake_process"/>
+    <echo>Project installation finished</echo>
+  </target>
+
+  <target name="init_db" description="Create DB from dump">
+    <property name="db.dump.dir" value="${struct.root}${project.sql.dir}"/>
+    <phingcall target="db_drop"/>
+    <phingcall target="db_create"/>
+    <echo>Project sql dump import started</echo>
+    <pdo url="${env.db.driver}:host=${env.db.host};dbname=${env.db.name}"
+         userId="${env.db.user}" password="${env.db.password}"
+         onerror="abort">
+      <fileset dir="${db.dump.dir}">
+        <include name="${project.sql.mask}"/>
+      </fileset>
+    </pdo>
+    <echo>Project sql dump import finished</echo>
+  </target>
+
+  <target name="db_drop">
+       <pdo url="${env.db.driver}:host=${env.db.host}"
+            userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
+            onerror="abort">
+        DROP DATABASE IF EXISTS ${env.db.name};
+       </pdo>
+       <echo>Project db droped</echo>
+  </target>
+
+  <target name="db_create">
+       <pdo url="${env.db.driver}:host=${env.db.host}"
+            userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
+            onerror="abort">
+        CREATE DATABASE ${env.db.name};
+       </pdo>
+      <echo>Project db created</echo>
+  </target>
+
+  <target name="host_install" description="Create virtual host for integrate project">
+    <!-- Add host to hosts file -->
+    <hosts-add
+      file="${env.host.file}"
+      name="${env.host.name}"
+      ip="${env.host.ip}"
+      use_sudo="${env.host.creation.use_sudo}"
+   />
+    <!-- Add host to sites-avaliable -->
+    <virtual-host-create
+    sites_avaliable_path="${env.host.vhost_dir.avaliable}"
+    sites_enabled_path="${env.host.vhost_dir.enabled}"
+    host_name="${env.host.name}"
+    host_template_file="${struct.build.templates.server}/${project.build.templates.vhost}"
+    site_root_path="${struct.code}"
+    drupal_files_dir="${drupal.files.dir}"
+    server_name="${env.server}"
+    use_sudo="${env.host.creation.use_sudo}"
+   />
+   </target>
+
+  <target name="test-forks"  description="Check if project contains forks">
+    <delete dir="${struct.tmp}/code" includeemptydirs="true" failonerror="true"/>
+    <delete file="${struct.report.tests}/${project.report.fork.file}"/>
+    <mkdir dir="${struct.report.tests}"/>
+    <echo>Check for forks starts</echo>
+    <if>
+        <istrue value="${project.make.no.patches.txt}"/>
+      <then>
+        <drush command="make" assume="yes" bin="${env.drush}">
+           <param>${project.make.file}</param>
+           <param>${struct.tmp}/code</param>
+           <option name="no-patch-txt"/>
+        </drush>
+      </then>
+      <else>
+        <drush command="make" assume="yes" bin="${env.drush}">
+           <param>${project.make.file}</param>
+           <param>${struct.tmp}/code</param>
+        </drush>
+      </else>
+    </if>
+
+    <drush command="hacked-make-list-projects" bin="${env.drush}">
+       <param>${struct.tmp}/code</param>
+       <option name="force-rebuild"/>
+       <option name="root">${struct.code}</option>
+       <option name="xml">${struct.report.tests}/${project.report.fork.file}</option>
+       <option name="exclude">${project.report.fork.exclude}</option>
+    </drush>
+
+    <echo>Check for forks finished</echo>
+  </target>
+
+    <target name="create_settings" description="Creates Drupal settings for this domain">
+        <property name="struct.code.settings" value="${struct.code}/sites"/>
+        <condition property="struct.code.settings.current" value="${struct.code.settings}/default"
+                   else="${struct.code.settings}/${env.host.name}">
+            <equals arg1="${project.settings.use_default_dir}" arg2="true" casesensitive="false" trim="true"/>
+        </condition>
+        <property name="struct.code.settings.source.file"
+                  value="${struct.build.templates}/${project.build.templates.settings}"/>
+        <drupal-create-settings
+                site-dir="${struct.code.settings.current}"
+                source="${struct.code.settings.source.file}"
+                db-name="${env.db.name}"
+                db-user="${env.db.user}"
+                db-pass="${env.db.password}"
+                db-host="${env.db.host}"
+                />
+    </target>
+
+    <target name="inspect_code" description="Inspect code for code style">
+    <echo>Here will be code to make inspect code</echo>
+  </target>
+
+  <target name="tests_run" description="Runs unit tests">
+    <echo>Here will be code to run test</echo>
+  </target>
+
+  <target name="drake_install" description="Install drake migration">
+    <drush command="pm-enable" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+      <param>drush_migrate</param>
+    </drush>
+
+    <drush command="variable-set" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+      <option name="always-set"/>
+      <param>drush_drake_scripts_dir</param>
+      <param>${struct.drake.scripts.dir}</param>
+    </drush>
+
+    <drush command="cc" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+      <param>all</param>
+    </drush>
+  </target>
+
+
+  <target name="drake_process" description="Run drake migration">
+    <drush command="drake" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+    </drush>
+  </target>
+</project>
+

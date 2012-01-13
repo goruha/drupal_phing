@@ -1,0 +1,242 @@
+# properties common for whole project
+
+########################################################
+# directory contains code (drupal root).
+#
+# example 
+#
+# project.code.dir= /
+# code placed in project root
+#
+# project.code.dir= /site
+# code placed in {project root}/site dir
+########################################################
+project.code.dir=/code
+
+########################################################
+# directory contains db dump files.
+#
+# example 
+#
+# project.sql.dir= /
+# sql dump files placed in project root
+#
+# project.sql.dir= /_sql
+# sql dump files placed in {project root}/_sql dir
+########################################################
+project.sql.dir=/db
+
+########################################################
+# Mask to select db dump files
+#
+# example 
+#
+# project.sql.mask= db.sql
+# Will import db.sql file to DB
+#
+# project.sql.mask= *.sql
+# Will import all files with sql extention from project.sql.dir
+########################################################
+project.sql.mask=*.mysql
+
+########################################################
+# Drush make file
+#
+# example
+#
+# project.make.file=build.make
+########################################################
+project.make.file=build.make
+
+########################################################
+# Drush make generate PATCHES.TXT
+#
+# example
+#
+# project.make.no.patches.txt=1
+########################################################
+project.make.no.patches.txt=1
+
+########################################################
+# directory contains templates.
+#
+# example 
+#
+# project.build.templates.dir=/templates
+# sql dump files placed in {project root}/{project.build.dir}/templates dir
+########################################################
+project.build.templates.dir=/templates
+
+########################################################
+# File that will be used as template for vhost file
+# in apache sites-avaliable dir.
+#
+# File should contains 
+# @ant|vhostname@ - host name
+# @ant|vhostdir@ - path to root site files
+#
+########################################################
+project.build.templates.vhost=vhost.tpl
+
+########################################################
+# File that will be used as template for drupal settings.php file
+#
+# File should contains 
+# @ant|db_user@ - db user name
+# @ant|db_password@ - db user password
+# @ant|db_host@ - db host
+# @ant|db_name@ - db name
+#
+########################################################
+project.build.templates.settings=settings.php.tpl
+
+########################################################
+# Drupal admin (user1) name
+#
+# project.drupal.admin.name=admin
+#
+########################################################
+project.drupal.admin.name=admin
+
+
+########################################################
+# Drupal admin (user1) password
+#
+# project.drupal.admin.password=admin
+#
+########################################################
+project.drupal.admin.password=admin
+
+########################################################
+# Drupal admin (user1) email
+#
+# project.drupal.admin.mail=admin@admin.com
+#
+########################################################
+project.drupal.admin.mail=admin@admin.com
+
+########################################################
+# Drupal default locale
+#
+# project.drupal.locale=en
+#
+########################################################
+project.drupal.locale=en
+
+########################################################
+# Drupal clean url enable
+#
+# project.drupal.clean_url=1
+#
+########################################################
+project.drupal.clean_url=1
+
+########################################################
+# Drupal site name
+#
+# project.drupal.site.name=Forge
+#
+########################################################
+project.drupal.site.name=Forge
+
+########################################################
+# Drupal site email
+#
+# project.drupal.site.mail=site@admin.com
+#
+########################################################
+project.drupal.site.mail=site@admin.com
+
+
+########################################################
+# Drupal db driver
+#
+# Will be used in settings.php in drupal
+#
+# project.drupal.db.driver=mysqli
+#
+########################################################
+project.drupal.db.driver=mysqli
+
+
+########################################################
+# directory contains tmp files
+#
+# example
+#
+# project.tmp.dir= /
+#
+########################################################
+project.tmp.dir=/tmp
+
+
+########################################################
+# directory contains reports files
+#
+# example
+#
+# project.report.dir= /
+########################################################
+project.report.dir=/reports
+
+
+########################################################
+# directory contains tests reports files
+#
+# example
+#
+# project.report.tests.dir= /
+# will be ${project.report.dir}/${project.report.tests.dir}
+########################################################
+project.report.tests.dir=tests
+
+########################################################
+# Fork report file
+#
+# example
+#
+# project.report.fork.file=forks.xml
+# will be ${project.report.dir}/${project.report.tests.dir}/${project.report.fork.file}
+########################################################
+project.report.fork.file=forks.xml
+
+########################################################
+# Fork exclude path
+#
+# example
+#
+# project.report.fork.exclude=sites/all/modules/custom/*
+#
+########################################################
+project.report.fork.exclude=sites/all/modules/custom/*
+
+
+########################################################
+# Path to dir with migrate scripts
+#
+# example
+#
+# project.drake.scripts.dir = /drake
+########################################################
+project.drake.scripts.dir=/drake
+
+
+
+########################################################
+# Path to dir with custom modules
+#
+# example
+#
+# project.custom.modules=/custom/modules
+########################################################
+project.custom.modules=/custom/modules
+
+
+########################################################
+# Path to dir with custom themes
+#
+# example
+#
+# project.custom.themes=/custom/themes
+########################################################
+project.custom.themes=/custom/themes

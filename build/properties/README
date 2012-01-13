@@ -1,0 +1,12 @@
+
+This directory contains properties files
+
+project.prop - project properties
+default.prop - default user specific properties
+
+You can copy default.prop file as 
+{user_name}.prop to have specific properties for each developer, ci system and etc.
+
+to user specific properties you should run wiht command like this.
+
+$> ant -Dprofile={user_name}
