@@ -258,3 +258,14 @@ project.custom.modules=/custom/modules
 # project.custom.themes=/custom/themes
 ########################################################
 project.custom.themes=/custom/themes
+
+########################################################
+# A test class, a test group. If omitted, a list of test
+# classes and test groups is presented. Delimit multiple
+# targets using commas.
+#
+# example
+#
+# project.test.targets=XML-RPC,Filter
+########################################################
+project.test.targets=XML-RPC,Filter

@@ -338,8 +338,21 @@ called from `init` target. -->
     <echo>Here will be code to make inspect code</echo>
   </target>
 
-  <target name="tests_run" description="Runs unit tests">
-    <echo>Here will be code to run test</echo>
+  <target name="tests_run" description="Runs unit tests" depends="init">
+    <delete dir="${struct.report.tests}" includeemptydirs="true"/>
+    <mkdir dir="${struct.report.tests}"/>
+    <echo>Clean test temporary files</echo>
+    <drush command="test-clean" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+    </drush>
+    <echo>Run tests</echo>
+    <drush command="test-run" assume="yes" bin="${env.drush}">
+      <option name="root">'${struct.code}'</option>
+      <option name="xml">'${struct.report.tests}'</option>
+      <option name="uri">'http://${env.host.name}'</option>
+      <param>'${project.test.targets}'</param>
+    </drush>
+    <echo>Run tests finished</echo>
   </target>
 
   <target name="test-forks" description="Check if project contains forks" depends="init, clear">
