@@ -13,9 +13,9 @@
 
   <target name="make" depends="init, clear" description="Run drush make">
     <echo>Project make started</echo>
-    <drush command="make" assume="yes" bin="${env.drush}">
-       <param>${project.make.file}</param>
-       <param>${struct.code}</param>
+    <drush command="make" assume="yes" bin="${env.drush}" proxy="${env.proxy}">
+       <param>'${project.make.file}'</param>
+       <param>'${struct.code}'</param>
     </drush>
     <echo>Project make finished</echo>
   </target>
@@ -23,19 +23,19 @@
   <target name="install" depends="init, verify, make, db_drop" description="Install site">
     <echo>Project installation started</echo>
     <drush command="site-install" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-      <option name="db-url">${project.drupal.db.driver}://${env.db.user}:${env.db.password}@${env.db.host}/${env.db.name}</option>
-      <option name="db-su">${env.db.user.sudo}</option>
-      <option name="db-su-pw">${env.db.user.sudo.password}</option>
-      <option name="account-name">${project.drupal.admin.name}</option>
-      <option name="account-pass">${project.drupal.admin.password}</option>
-      <option name="account-mail">${project.drupal.admin.mail}</option>
-      <option name="locale">${project.drupal.locale}</option>
-      <option name="clean-url">${project.drupal.clean_url}</option>
-      <option name="site-name">${project.drupal.site.name}</option>
-      <option name="site-mail">${project.drupal.site.mail}</option>
-      <option name="sites-subdir">${drupal.site.subdir}</option>
-      <param>default</param>
+      <option name="root">'${struct.code}'</option>
+      <option name="db-url">'${project.drupal.db.driver}://${env.db.user}:${env.db.password}@${env.db.host}/${env.db.name}'</option>
+      <option name="db-su">'${env.db.user.sudo}'</option>
+      <option name="db-su-pw">'${env.db.user.sudo.password}'</option>
+      <option name="account-name">'${project.drupal.admin.name}'</option>
+      <option name="account-pass">'${project.drupal.admin.password}'</option>
+      <option name="account-mail">'${project.drupal.admin.mail}'</option>
+      <option name="locale">'${project.drupal.locale}'</option>
+      <option name="clean-url">'${project.drupal.clean_url}'</option>
+      <option name="site-name">'${project.drupal.site.name}'</option>
+      <option name="site-mail">'${project.drupal.site.mail}'</option>
+      <option name="sites-subdir">'${drupal.site.subdir}'</option>
+      <param>'default'</param>
     </drush>
 
     <phingcall target="create_settings"/>
@@ -45,6 +45,7 @@
     <phingcall target="drake_install"/>
     <phingcall target="drake_process"/>
     <phingcall target="drush_revert_all"/>
+    <phingcall target="drush_rebuild_nodeaccess"/>
     <echo>Project installation finished</echo>
   </target>
 
