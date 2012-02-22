@@ -440,6 +440,13 @@ called from `init` target. -->
       <option name="root">${struct.code}</option>
     </drush>
   </target>
+  
+  <target name="drush_rebuild_nodeaccess" description="Rebuild nodeacces">
+    <drush command="php-eval" assume="yes" bin="${env.drush}">
+      <option name="root">${struct.code}</option>
+      <param>"module_load_include('inc', 'node', 'node.admin');  node_access_rebuild(FALSE);"</param>
+    </drush>
+  </target>
 
   <target name="drupal_cc" depends="init">
     <drush command="cc" bin="${env.drush}">
