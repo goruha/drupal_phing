@@ -1,126 +1,150 @@
-<?xml version="1.0"?>
-<project default="test-forks">
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="main" default="install">
 
-  <target name="init" depends="load-properties, setup-filesets" description="Init resources">
-    <taskdef name="drush" classpath="${struct.build.tasks}" classname="DrushTask"/>
-    <taskdef name="hosts-add" classpath="${struct.build.tasks}" classname="HostsAddTask"/>
-    <taskdef name="virtual-host-create" classpath="${struct.build.tasks}" classname="VirtualHostCreateTask"/>
+  <!--
+    Profile property define file contains properties for current build.
+    It is usefull for different developers that have different systems and needs different configs.
+    If profile is not defined use default.
+  -->
+  <condition property="profile" value="default">
+    <not>
+      <isset property="profile"/>
+    </not>
+  </condition>
+
+  <!-- Load profile specified properties -->
+  <property name="build" value="build"/>
+
+  <!-- Load profile specified properties -->
+  <property file="${build}/properties/${profile}.prop"/>
+  <!-- Load project specified properties -->
+  <property file="${build}/properties/project.prop"/>
+
+  <!-- SVN structure dependent settings -->
+  <resolvepath propertyName="struct.root" file="." />
+
+  <property name="struct.build" value="${struct.root}/${build}"/>
+  <property name="struct.build.submodules" value="${struct.build}/submodules"/>
+  <property name="struct.build.templates" value="${struct.build}${project.build.templates.dir}"/>
+
+  <property name="struct.code" value="${struct.root}${project.code.dir}"/>
+
+  <property name="struct.tmp" value="${struct.root}${project.tmp.dir}"/>
+
+  <property name="struct.report" value="${struct.root}${project.report.dir}"/>
+  <property name="struct.report.tests" value="${struct.report}/${project.report.tests.dir}"/>
+  <property name="struct.report.phplint" value="${struct.report}/${project.report.phplint.dir}"/>
+  
+  <property name="struct.logs" value="${struct.root}${project.logs.dir}"/>
+  <property name="struct.tools" value="${struct.root}${project.tools.dir}"/>
+
+  <property name="struct.custom.modules" value="${struct.root}${project.custom.modules}"/>
+  <property name="struct.custom.themes" value="${struct.root}${project.custom.themes}"/>
+
+  <property name="struct.drake.scripts.dir" value="${struct.root}${project.drake.scripts.dir}"/>
+  <property name="struct.deploy.package.dir" value="${struct.root}${project.deploy.package.dir}"/>
+
+  <if>
+    <equals arg1="${project.settings.use_default_dir}" arg2="true" casesensitive="false" trim="true"/>
+    <then>
+      <property name="drupal.site.subdir" value="default"/>
+    </then>
+    <else>
+      <property name="drupal.site.subdir" value="${env.host.name}"/>
+    </else>
+  </if>
+
+  <property name="struct.build.templates.server" value="${struct.build.templates}/${env.server}"/>
+  <property name="drupal.files.dir" value="/sites/${drupal.site.subdir}/files"/>
+
+  <condition property="env.proxy" value="">
+    <not>
+      <isset property="env.proxy"/>
+    </not>
+  </condition>
+
+  <import file="${struct.build.submodules}/drush/build.xml"/>
+  <import file="${struct.build.submodules}/vhosts/build.xml"/>
+  <import file="${struct.build.submodules}/drupal/build.xml"/>
+  <import file="${struct.build.submodules}/deploy/build.xml"/>
+
+  <target name="install" depends="clear" description="Install site">
+    <phingcall target="drupal.install"/>
   </target>
 
-  <target name="verify" description="Verify code" depends="init,
-                                                           clear,
-                                                           lint-php" />
-
-  <target name="make" depends="init, clear" description="Run drush make">
-    <echo>Project make started</echo>
-    <drush command="make" assume="yes" bin="${env.drush}" proxy="${env.proxy}">
-       <param>'${project.make.file}'</param>
-       <param>'${struct.code}'</param>
-    </drush>
-    <echo>Project make finished</echo>
-  </target>
-
-  <target name="install" depends="init, verify, make, db_drop" description="Install site">
-    <echo>Project installation started</echo>
-    <drush command="site-install" assume="yes" bin="${env.drush}">
-      <option name="root">'${struct.code}'</option>
-      <option name="db-url">'${project.drupal.db.driver}://${env.db.user}:${env.db.password}@${env.db.host}/${env.db.name}'</option>
-      <option name="db-su">'${env.db.user.sudo}'</option>
-      <option name="db-su-pw">'${env.db.user.sudo.password}'</option>
-      <option name="account-name">'${project.drupal.admin.name}'</option>
-      <option name="account-pass">'${project.drupal.admin.password}'</option>
-      <option name="account-mail">'${project.drupal.admin.mail}'</option>
-      <option name="locale">'${project.drupal.locale}'</option>
-      <option name="clean-url">'${project.drupal.clean_url}'</option>
-      <option name="site-name">'${project.drupal.site.name}'</option>
-      <option name="site-mail">'${project.drupal.site.mail}'</option>
-      <option name="sites-subdir">'${drupal.site.subdir}'</option>
-      <param>'default'</param>
-    </drush>
-
-    <phingcall target="create_settings"/>
-    <chmod file="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777" />
-    <symlink target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom" />
-    <symlink target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom" />
-    <phingcall target="drake_install"/>
-    <phingcall target="drake_process"/>
-    <phingcall target="drush_revert_all"/>
-    <phingcall target="drush_rebuild_nodeaccess"/>
-    <echo>Project installation finished</echo>
-  </target>
-
+  <target name="verify" description="Verify code" depends="clear,
+                                                           lint-php"/>
 
   <target name="clear" description="Clear dirs">
-    <if>
-      <available file="${struct.code}/sites/${drupal.site.subdir}"/>
-      <then>
-        <chmod file="${struct.code}/sites/${drupal.site.subdir}" mode="0777" quiet="true" failonerror="false"/>
-      </then>
-    </if>
+    <phingcall target="drupal.clear"/>
     <delete dir="${struct.code}" includeemptydirs="true" failonerror="true"/>
     <delete dir="${struct.tmp}" includeemptydirs="true" failonerror="true"/>
     <delete dir="${struct.report}" includeemptydirs="true" failonerror="true"/>
     <echo>Cleaned directory</echo>
   </target>
 
-<!-- ### Setup file sets
+  <target name="dependences.clear" description="Clear dirs">
+    <delete dir="${struct.tools}" includeemptydirs="true" failonerror="true"/>
+    <echo>Cleaned directory</echo>
+  </target>
+
+  <!-- ### Setup file sets
 
 Setup file sets - patterns for different aspects of the source code.
 These are used in other targets.
 
 This is part of the initialization of the build. This target should only be
 called from `init` target. -->
-  <target name="setup-filesets"
-          depends="load-properties">
+  <target name="setup-filesets">
     <!-- Define pattern sets for future reference -->
 
     <!-- PHP files -->
     <patternset id="php">
-      <include name="**/*.php" />
-      <include name="**/*.module" />
-      <include name="**/*.install" />
-      <include name="**/*.inc" />
-      <include name="**/*.profile" />
-      <include name="**/*.test" />
+      <include name="**/*.php"/>
+      <include name="**/*.module"/>
+      <include name="**/*.install"/>
+      <include name="**/*.inc"/>
+      <include name="**/*.profile"/>
+      <include name="**/*.test"/>
     </patternset>
 
     <!-- Javascript files -->
     <patternset id="js">
-      <include name="**/*.js" />
+      <include name="**/*.js"/>
       <!-- Minimized JavaScript files should not be analyzed.
            In their optimized state they can not be expexted
            to conform to coding standards. -->
-      <exclude name="**/*.min.js" />
+      <exclude name="**/*.min.js"/>
     </patternset>
 
     <!-- CSS files -->
     <patternset id="css">
-      <include name="**/*.css" />
+      <include name="**/*.css"/>
     </patternset>
 
     <!-- Directories for community contributed code. We exclude these from
          code analysis as we cannot be held responsible for any problems
          here. -->
     <patternset id="contrib">
-      <exclude name="**/contrib/**/*.*" />
-      <exclude name="**/libraries/**/*.*" />
+      <exclude name="**/contrib/**/*.*"/>
+      <exclude name="**/libraries/**/*.*"/>
     </patternset>
 
     <patternset id="custom">
-      <include name="**/custom/**/*.*" />
+      <include name="**/custom/**/*.*"/>
     </patternset>
 
 
     <!-- We exclude generated files from We exclude these from code analysis
          as we cannot be held responsible for any problems here. -->
     <patternset id="generated">
-      <exclude name="**/*.features.*" />
-      <exclude name="**/*.field_group.inc" />
-      <exclude name="**/*.layouts.inc" />
-      <exclude name="**/*.pages_default.inc" />
-      <exclude name="**/*.panels_default.inc" />
-      <exclude name="**/*.strongarm.inc" />
-      <exclude name="**/*.views_default.inc" />
+      <exclude name="**/*.features.*"/>
+      <exclude name="**/*.field_group.inc"/>
+      <exclude name="**/*.layouts.inc"/>
+      <exclude name="**/*.pages_default.inc"/>
+      <exclude name="**/*.panels_default.inc"/>
+      <exclude name="**/*.strongarm.inc"/>
+      <exclude name="**/*.views_default.inc"/>
     </patternset>
 
     <!-- Define file sets for future reference -->
@@ -138,216 +162,41 @@ called from `init` target. -->
 
     <!-- All Javascript files -->
     <fileset id="src.js" dir="${struct.code}">
-      <patternset refid="js" />
+      <patternset refid="js"/>
     </fileset>
 
     <!-- Custom Javascript files -->
     <fileset id="src.js.custom" dir="${struct.code}">
-      <patternset refid="js" />
+      <patternset refid="js"/>
     </fileset>
 
     <!-- All CSS files -->
     <fileset id="src.css" dir="${struct.code}">
-      <patternset refid="css" />
+      <patternset refid="css"/>
     </fileset>
 
     <!-- Custom CSS files -->
     <fileset id="src.css.custom" dir="${struct.code}">
-      <patternset refid="css" />
-      <patternset refid="contrib" />
+      <patternset refid="css"/>
+      <patternset refid="contrib"/>
     </fileset>
 
   </target>
 
 
-  <target name="load-properties">
-    <property environment="env"/>
-    <condition property="env.WORKSPACE" value="">
-      <not>
-        <isset property="env.WORKSPACE"/>
-      </not>
-    </condition>
-
-    <!--
-      Profile property define file contains properties for current build.
-      It is usefull for different developers that have different systems and needs different configs.
-      If profile is not defined use default.
-    -->
-    <condition property="profile" value="default">
-      <not>
-        <isset property="profile"/>
-      </not>
-    </condition>
-
-    <!-- Load profile specified properties -->
-    <property name="build" value="build"/>
-
-    <!-- Load profile specified properties -->
-    <property file="${build}/properties/${profile}.prop"/>
-    <!-- Load project specified properties -->
-    <property file="${build}/properties/project.prop"/>
-
-    <!-- SVN structure dependent settings -->
-    <property name="struct.root" value="${env.WORKSPACE}${project.root}"/>
-    <property name="struct.build" value="${struct.root}/${build}"/>
-    <property name="struct.build.tasks" value="${struct.build}/tasks"/>
-
-    <property name="struct.build.templates" value="${struct.build}${project.build.templates.dir}"/>
-    <property name="struct.code" value="${struct.root}${project.code.dir}"/>
-    <property name="struct.tmp" value="${struct.root}${project.tmp.dir}"/>
-    <property name="struct.report" value="${struct.root}${project.report.dir}"/>
-    <property name="struct.report.tests" value="${struct.report}/${project.report.tests.dir}"/>
-    <property name="struct.report.phplint" value="${struct.report}/${project.report.phplint.dir}"/>
-    <property name="struct.logs" value="${struct.root}${project.logs.dir}"/>
-    <property name="struct.tools" value="${struct.root}${project.tools.dir}"/>
-
-    <property name="struct.custom.modules" value="${struct.root}${project.custom.modules}"/>
-    <property name="struct.custom.themes" value="${struct.root}${project.custom.themes}"/>
-    
-    <property name="struct.drake.scripts.dir" value="${struct.root}${project.drake.scripts.dir}"/>
-
-    <if>
-      <equals arg1="${project.settings.use_default_dir}" arg2="true" casesensitive="false" trim="true"/>
-      <then>
-        <property name="drupal.site.subdir" value="default"/>
-      </then>
-      <else>
-        <property name="drupal.site.subdir" value="${env.host.name}"/>
-      </else>
-    </if>
-
-    <property name="struct.build.templates.server" value="${struct.build.templates}/${env.server}"/>
-    <property name="drupal.files.dir" value="/sites/${drupal.site.subdir}/files"/>
-  </target>
-
-  <target name="create_settings" description="Creates Drupal settings for this domain" depends="init">
-    <property name="struct.code.settings" value="${struct.code}/sites"/>
-    <property name="struct.code.settings.source.file"
-              value="${struct.build.templates}/${project.build.templates.settings}"/>
-    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0777" />
-    <copy file="${struct.code.settings.source.file}"
-          tofile="${struct.code.settings}/${drupal.site.subdir}/settings.php" overwrite="true">
-      <filterchain>
-          <expandproperties />
-      </filterchain>
-    </copy>
-    <chmod file="${struct.code}/sites/${drupal.site.subdir}/settings.php" mode="0755" />
-    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0755" />
-  </target>
-
-
-  <target name="init_db" description="Create DB from dump">
-    <echo>Project sql dump import started</echo>
-    <phingcall target="db_drop"/>
-    <drush command="sql-query" bin="${env.drush}">
-      <option name="input-file">'${struct.root}${project.sql.dir}/${project.sql.file}'</option>
-      <option name="strict">'0'</option>
-      <option name="root">'${struct.code}'</option>
-    </drush>
-    <echo>Project sql dump import finished</echo>
-  </target>
-
-  <target name="db_drop" depends="init, create_settings, db_create">
-    <drush command="sql-drop" bin="${env.drush}" assume="yes">
-      <option name="root">'${struct.code}'</option>
-    </drush>
-    <echo>Project db droped</echo>
-  </target>
-
-  <target name="db_create" depends="init">
-    <pdo url="${env.db.driver}:host=${env.db.host}"
-         userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
-         onerror="abort">
-      CREATE DATABASE IF NOT EXISTS ${env.db.name};
-    </pdo>
-    <echo>Project db created</echo>
-  </target>
-
-  <target name="host_install" description="Create virtual host for integrate project">
-    <!-- Add host to hosts file -->
-    <hosts-add
-      file="${env.host.file}"
-      name="${env.host.name}"
-      ip="${env.host.ip}"
-      use_sudo="${env.host.creation.use_sudo}"
-   />
-    <!-- Add host to sites-avaliable -->
-    <virtual-host-create
-    sites_avaliable_path="${env.host.vhost_dir.avaliable}"
-    sites_enabled_path="${env.host.vhost_dir.enabled}"
-    host_name="${env.host.name}"
-    host_template_file="${struct.build.templates.server}/${project.build.templates.vhost}"
-    site_root_path="${struct.code}"
-    drupal_files_dir="${drupal.files.dir}"
-    server_name="${env.server}"
-    use_sudo="${env.host.creation.use_sudo}"
-   />
-   </target>
-
-  <target name="test-forks"  description="Check if project contains forks">
-    <delete dir="${struct.tmp}/code" includeemptydirs="true" failonerror="true"/>
-    <delete file="${struct.report.tests}/${project.report.fork.file}"/>
-    <mkdir dir="${struct.report.tests}"/>
-    <echo>Check for forks starts</echo>
-    <if>
-        <istrue value="${project.make.no.patches.txt}"/>
-      <then>
-        <drush command="make" assume="yes" bin="${env.drush}">
-           <param>${project.make.file}</param>
-           <param>${struct.tmp}/code</param>
-           <option name="no-patch-txt"/>
-        </drush>
-      </then>
-      <else>
-        <drush command="make" assume="yes" bin="${env.drush}">
-           <param>${project.make.file}</param>
-           <param>${struct.tmp}/code</param>
-        </drush>
-      </else>
-    </if>
-
-    <drush command="hacked-make-list-projects" bin="${env.drush}">
-       <param>${struct.tmp}/code</param>
-       <option name="force-rebuild"/>
-       <option name="root">${struct.code}</option>
-       <option name="xml">${struct.report.tests}/${project.report.fork.file}</option>
-       <option name="exclude">${project.report.fork.exclude}</option>
-    </drush>
-
-    <echo>Check for forks finished</echo>
-  </target>
-
-    <target name="create_settings" description="Creates Drupal settings for this domain">
-        <property name="struct.code.settings" value="${struct.code}/sites"/>
-        <condition property="struct.code.settings.current" value="${struct.code.settings}/default"
-                   else="${struct.code.settings}/${env.host.name}">
-            <equals arg1="${project.settings.use_default_dir}" arg2="true" casesensitive="false" trim="true"/>
-        </condition>
-        <property name="struct.code.settings.source.file"
-                  value="${struct.build.templates}/${project.build.templates.settings}"/>
-        <drupal-create-settings
-                site-dir="${struct.code.settings.current}"
-                source="${struct.code.settings.source.file}"
-                db-name="${env.db.name}"
-                db-user="${env.db.user}"
-                db-pass="${env.db.password}"
-                db-host="${env.db.host}"
-                />
-    </target>
-
-    <target name="inspect_code" description="Inspect code for code style">
+  <target name="inspect_code" description="Inspect code for code style">
     <echo>Here will be code to make inspect code</echo>
   </target>
 
-  <target name="tests_run" description="Runs unit tests" depends="init">
+  <target name="tests_run" description="Runs unit tests">
     <delete dir="${struct.report.tests}" includeemptydirs="true"/>
     <mkdir dir="${struct.report.tests}"/>
     <echo>Clean test temporary files</echo>
-    <drush command="test-clean" assume="yes" bin="${env.drush}">
+    <drush command="test-clean" assume="yes" bin="${project.drush.bin">
       <option name="root">${struct.code}</option>
     </drush>
     <echo>Run tests</echo>
-    <drush command="test-run" assume="yes" bin="${env.drush}">
+    <drush command="test-run" assume="yes" bin="${project.drush.bin}">
       <option name="root">'${struct.code}'</option>
       <option name="xml">'${struct.report.tests}'</option>
       <option name="uri">'http://${env.host.name}'</option>
@@ -356,8 +205,8 @@ called from `init` target. -->
     <echo>Run tests finished</echo>
   </target>
 
-  <target name="test-forks" description="Check if project contains forks" depends="init, clear">
-    <drush command="pm-refresh" bin="${env.drush}">
+  <target name="test-forks" description="Check if project contains forks" depends="clear">
+    <drush command="pm-refresh" bin="${project.drush.bin}">
       <option name="root">"${struct.code}"</option>
     </drush>
     <delete dir="${struct.tmp}/code" includeemptydirs="true" failonerror="true"/>
@@ -367,28 +216,28 @@ called from `init` target. -->
     <if>
       <istrue value="${project.make.no.patches.txt}"/>
       <then>
-        <drush command="make" assume="yes" bin="${env.drush}">
+        <drush command="make" assume="yes" bin="${project.drush.bin}">
           <param>'${project.make.file}'</param>
           <param>'${struct.tmp}/code'</param>
           <option name="no-patch-txt"/>
         </drush>
       </then>
       <else>
-        <drush command="make" assume="yes" bin="${env.drush}">
+        <drush command="make" assume="yes" bin="${project.drush.bin}">
           <param>'${project.make.file}'</param>
           <param>'${struct.tmp}/code"</param>
         </drush>
       </else>
     </if>
 
-    <phingcall target="drupal_cc"/>
+    <phingcall target="cache.clear"/>
 
-    <drush command="pm-enable" assume="yes" bin="${env.drush}">
+    <drush command="pm-enable" assume="yes" bin="${project.drush.bin}">
       <param>'hacked_make'</param>
       <option name="root">'${struct.code}'</option>
     </drush>
 
-    <drush command="hacked-make-list-projects" bin="${env.drush}">
+    <drush command="hacked-make-list-projects" bin="${project.drush.bin}">
       <param>'${struct.tmp}/code'</param>
       <option name="force-rebuild"/>
       <option name="root">'${struct.code}'</option>
@@ -400,59 +249,11 @@ called from `init` target. -->
   </target>
 
   <target name="lint-php"
-          description="Check PHP files for syntax errors using PHPLint"
-          depends="init, make">
+          description="Check PHP files for syntax errors using PHPLint">
     <mkdir dir="${struct.report.phplint}"/>
     <phplint haltonfailure="true" tofile="${struct.report.phplint}/phplint.xml" level="${project.phplint.level}">
-      <fileset refid="src.php" />
+      <fileset refid="src.php"/>
     </phplint>
-  </target>
-
-  <target name="drake_install" depends="init" description="Install drake migration">
-    <drush command="pm-enable" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-      <param>drush_migrate</param>
-    </drush>
-
-    <drush command="variable-set" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-      <option name="always-set"/>
-      <param>drush_drake_scripts_dir</param>
-      <param>${struct.drake.scripts.dir}</param>
-    </drush>
-    <phingcall target="drupal_cc"/>
-  </target>
-
-
-  <target name="drake_process" description="Run drake migration">
-    <drush command="drake" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-    </drush>
-  </target>
-
-
-  <target name="drush_revert_all" description="Revert all drupal objects">
-    <drush command="features-revert-all" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-    </drush>
-    <phingcall target="drupal_cc"/>
-    <drush command="features-revert-all" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-    </drush>
-  </target>
-  
-  <target name="drush_rebuild_nodeaccess" description="Rebuild nodeacces">
-    <drush command="php-eval" assume="yes" bin="${env.drush}">
-      <option name="root">${struct.code}</option>
-      <param>"module_load_include('inc', 'node', 'node.admin');  node_access_rebuild(FALSE);"</param>
-    </drush>
-  </target>
-
-  <target name="drupal_cc" depends="init">
-    <drush command="cc" bin="${env.drush}">
-      <param>all</param>
-      <option name="root">"${struct.code}"</option>
-    </drush>
   </target>
 </project>
 

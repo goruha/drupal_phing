@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="host">
+  <property name="project.host.task.dir" value="phingVhost" />
+  <property name="project.host.task.hosts.class.name" value="HostsAddTask" />
+  <property name="project.host.task.vhost.class.name" value="VirtualHostCreateTask" />
+  <property name="project.host.task.path" value="${struct.tools}/${project.host.task.dir}" />
+
+  <if>
+    <and>
+      <not>
+        <available file="${project.host.task.path}/${project.host.task.hosts.class.name}.php" value="Yes"/>
+      </not>
+      <not>
+        <available file="${project.host.task.path}/${project.host.task.vhost.class.name}.php" value="Yes"/>
+      </not>
+    </and>
+    <then>
+      <mkdir dir="${project.host.task.path}"/>
+      <gitclone
+          repository="${project.host.task.git.rep}"
+          targetPath="${project.host.task.path}"/>
+      <gitcheckout
+          repository="${project.host.task.path}"
+          branchname="${project.host.task.git.branch.name}" quiet="true"/>
+    </then>
+  </if>
+  <taskdef name="host-add" classpath="${project.host.task.path}" classname="${project.host.task.hosts.class.name}"/>
+  <taskdef name="virtual-host-create" classpath="${project.host.task.path}" classname="${project.host.task.vhost.class.name}"/>
+
+  <target name="install" description="Create virtual host for integrate project">
+    <!-- Add host to hosts file -->
+    <host-add
+        file="${env.host.file}"
+        name="${env.host.name}"
+        ip="${env.host.ip}"
+        use_sudo="${env.host.creation.use_sudo}"
+        />
+    <!-- Add host to sites-avaliable -->
+    <virtual-host-create
+        sites_avaliable_path="${env.host.vhost_dir.avaliable}"
+        sites_enabled_path="${env.host.vhost_dir.enabled}"
+        host_name="${env.host.name}"
+        host_template_file="${struct.build.templates.server}/${project.build.templates.vhost}"
+        site_root_path="${struct.code}"
+        drupal_files_dir="${drupal.files.dir}"
+        server_name="${env.server}"
+        use_sudo="${env.host.creation.use_sudo}"
+        />
+  </target>
+</project>

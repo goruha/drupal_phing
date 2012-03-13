@@ -1,186 +1,23 @@
 # user specific properties
 
-########################################################
-# Project root directory
-# This directory will root to find paths for code, db, build dirs
-# For console use it should be absolute path to project dir
-# For CI systems like Hudson it should be relative to env.WORKSPACE path
-#
-# example 
-#
-# project.root= /var/www/example.dev
-# console use
-#
-# project.root= ../
-# Hudson use
-########################################################
-project.root=/home/projects/web/forge
-
-########################################################
-# Use default dir to store settings.php
-# If true then /sites/default/ will be used to store settings.php
-# Else /sites/{env.host.name}/ will be used to store settings.php
-#
-# example
-#
-# project.settings.use_default_dir=true
-########################################################
-project.settings.use_default_dir=true
-
-########################################################
-# RDBMS driver
-#
-# example
-#
-# env.db.driver=mysql
-########################################################
 env.db.driver=mysql
-
-########################################################
-# RDBMS host
-#
-# example 
-#
-# env.db.host=localhost
-########################################################
 env.db.host=localhost
-
-########################################################
-# DB name
-#
-# example 
-#
-# env.db.name=example_db
-########################################################
 env.db.name=forge_dev
-
-########################################################
-# RDBMS user name
-#
-# example 
-#
-# env.db.user=user
-########################################################
 env.db.user=root
-
-########################################################
-# RDBMS user password
-#
-# example 
-#
-# env.db.user=user_pass
-########################################################
 env.db.password=123
-
-########################################################
-# RDBMS sudo user name
-# Account to use when creating a new database.
-# Must have Grant permission (mysql only).
-# example
-#
-# env.db.user.sudo=user
-########################################################
 env.db.user.sudo=root
-
-########################################################
-# RDBMS sudo user password
-#
-# example
-#
-# env.db.user.sudo.password=user_pass
-########################################################
 env.db.user.sudo.password=123
 
-########################################################
-# Server
-#
-# example
-#
-# env.server=apache2
-########################################################
 env.server=apache2
 
-########################################################
-# Path to hosts file
-# Should be absolute path
-#
-# example 
-#
-# env.host.file=/etc/hosts
-########################################################
 env.host.file=/etc/hosts
-
-########################################################
-# Host name
-#
-# example 
-#
-# env.host.name=example.dev
-########################################################
 env.host.name=forge.dev
-
-########################################################
-# Host ip
-#
-# example 
-#
-# env.host.ip=127.0.0.1
-########################################################
 env.host.ip=127.0.1.1
- 
-########################################################
-# Path to apache sites avaliable dir
-#
-# example 
-#
-# env.host.vhost_dir.avaliable=/etc/apache2/sites-available
-########################################################
 env.host.vhost_dir.avaliable=/etc/apache2/sites-available
-
-########################################################
-# Path to apache sites enabled dir
-#
-# example 
-#
-# env.host.vhost_dir.enabled=/etc/apache2/sites-enabled
-########################################################
 env.host.vhost_dir.enabled=/etc/apache2/sites-enabled
-
-########################################################
-# Flag if run server restart command as root
-# For *nix only. If you are using windows set false
-#
-# Remember that in *nix systems only root can bind port 80.
-# That means that apache restart should be run under root.
-# so set env.host.apache.use_sudo=true
-# and restart commands will be run as root like
-# $> sudo /etc/init.d {env.server} restart
-# IMPORTANT!!!!
-# You should user access to run sudo with out password
-# You can do this by adding
-# For example if user is "hudson" add
-# hudson  ALL=(ALL) NOPASSWD:/etc/init.d
-# to /etc/sudoers
-# WARNING: to edit /etc/sudoers use visudo command
-########################################################
 env.host.creation.use_sudo=true
 
-########################################################
-# Path to drush
-#
-# example
-#
-# env.drush=/usr/share/drush/drush
-#
-########################################################
-env.drush=/usr/share/drush/drush
+env.proxy=192.168.12.24:3128
 
-########################################################
-# Proxy
-#
-# example
-#
-# env.proxy=192.168.12.12:8080
-#
-########################################################
-env.proxy=
+
+env.deploy.package.profile=whitebox

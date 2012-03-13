@@ -1,271 +1,51 @@
 # properties common for whole project
 
-########################################################
-# directory contains code (drupal root).
-#
-# example 
-#
-# project.code.dir= /
-# code placed in project root
-#
-# project.code.dir= /site
-# code placed in {project root}/site dir
-########################################################
 project.code.dir=/code
 
-########################################################
-# directory contains db dump files.
-#
-# example 
-#
-# project.sql.dir= /
-# sql dump files placed in project root
-#
-# project.sql.dir= /_sql
-# sql dump files placed in {project root}/_sql dir
-########################################################
 project.sql.dir=/db
+project.sql.mask=*.mysql
 
-########################################################
-# File to select db dump file
-#
-# example 
-#
-# project.sql.file= db.sql
-# Will import db.sql file to DB
-#
-########################################################
-project.sql.file=db.mysql
+project.settings.use_default_dir=true
 
-########################################################
-# Drush make file
-#
-# example
-#
-# project.make.file=build.make
-########################################################
+project.tools.dir=/tools
+
 project.make.file=build.make
-
-########################################################
-# Drush make generate PATCHES.TXT
-#
-# example
-#
-# project.make.no.patches.txt=1
-########################################################
 project.make.no.patches.txt=1
 
-########################################################
-# directory contains templates.
-#
-# example 
-#
-# project.build.templates.dir=/templates
-# sql dump files placed in {project root}/{project.build.dir}/templates dir
-########################################################
 project.build.templates.dir=/templates
-
-########################################################
-# File that will be used as template for vhost file
-# in apache sites-avaliable dir.
-#
-# File should contains 
-# @ant|vhostname@ - host name
-# @ant|vhostdir@ - path to root site files
-#
-########################################################
 project.build.templates.vhost=vhost.tpl
-
-########################################################
-# File that will be used as template for drupal settings.php file
-#
-# File should contains 
-# @ant|db_user@ - db user name
-# @ant|db_password@ - db user password
-# @ant|db_host@ - db host
-# @ant|db_name@ - db name
-#
-########################################################
 project.build.templates.settings=settings.php.tpl
 
-########################################################
-# Drupal admin (user1) name
-#
-# project.drupal.admin.name=admin
-#
-########################################################
 project.drupal.admin.name=admin
-
-
-########################################################
-# Drupal admin (user1) password
-#
-# project.drupal.admin.password=admin
-#
-########################################################
 project.drupal.admin.password=admin
-
-########################################################
-# Drupal admin (user1) email
-#
-# project.drupal.admin.mail=admin@admin.com
-#
-########################################################
 project.drupal.admin.mail=admin@admin.com
-
-########################################################
-# Drupal default locale
-#
-# project.drupal.locale=en
-#
-########################################################
-project.drupal.locale=en
-
-########################################################
-# Drupal clean url enable
-#
-# project.drupal.clean_url=1
-#
-########################################################
+project.drupal.locale=ru
 project.drupal.clean_url=1
-
-########################################################
-# Drupal site name
-#
-# project.drupal.site.name=Forge
-#
-########################################################
 project.drupal.site.name=Forge
-
-########################################################
-# Drupal site email
-#
-# project.drupal.site.mail=site@admin.com
-#
-########################################################
 project.drupal.site.mail=site@admin.com
-
-
-########################################################
-# Drupal db driver
-#
-# Will be used in settings.php in drupal
-#
-# project.drupal.db.driver=mysqli
-#
-########################################################
 project.drupal.db.driver=mysqli
+project.drupal.profile=solution_core
 
-
-########################################################
-# directory contains tmp files
-#
-# example
-#
-# project.tmp.dir= /
-#
-########################################################
 project.tmp.dir=/tmp
 
-
-########################################################
-# directory contains reports files
-#
-# example
-#
-# project.report.dir= /
-########################################################
 project.report.dir=/reports
-
-
-########################################################
-# directory contains tests reports files
-#
-# example
-#
-# project.report.tests.dir= /
-# will be ${project.report.dir}/${project.report.tests.dir}
-########################################################
 project.report.tests.dir=tests
-
-########################################################
-# directory contains tests reports files
-#
-# example
-#
-# project.report.phplint.dir= /
-# will be ${project.report.dir}/${project.report.phplint.dir}
-########################################################
-project.report.phplint.dir=phplint
-
-########################################################
-# Control the level at which phplint reports status messages.
-# One of error, warning, info, verbose, debug.
-#
-# example
-#
-# project.phplint.level=info
-########################################################
-project.phplint.level=warning
-
-########################################################
-# Fork report file
-#
-# example
-#
-# project.report.fork.file=forks.xml
-# will be ${project.report.dir}/${project.report.tests.dir}/${project.report.fork.file}
-########################################################
 project.report.fork.file=forks.xml
-
-########################################################
-# Fork exclude path
-#
-# example
-#
-# project.report.fork.exclude=sites/all/modules/custom/*
-#
-########################################################
 project.report.fork.exclude=sites/all/modules/custom/*
 
-
-########################################################
-# Path to dir with migrate scripts
-#
-# example
-#
-# project.drake.scripts.dir = /drake
-########################################################
 project.drake.scripts.dir=/drake
 
-
-
-########################################################
-# Path to dir with custom modules
-#
-# example
-#
-# project.custom.modules=/custom/modules
-########################################################
 project.custom.modules=/custom/modules
-
-
-########################################################
-# Path to dir with custom themes
-#
-# example
-#
-# project.custom.themes=/custom/themes
-########################################################
 project.custom.themes=/custom/themes
 
-########################################################
-# A test class, a test group. If omitted, a list of test
-# classes and test groups is presented. Delimit multiple
-# targets using commas.
-#
-# example
-#
-# project.test.targets=XML-RPC,Filter
-########################################################
-project.test.targets=XML-RPC,Filter
+project.drush.task.git.rep=git@github.com:goruha/phingdrushtask.git
+project.drush.task.git.branch.name=7.x-1.x
+
+project.drush.git.rep=git@github.com:goruha/drush.git
+project.drush.git.branch.name=7.x-5.x-make-local-patches-840540
+
+project.host.task.git.rep=git@github.com:goruha/phingVhosts.git
+project.host.task.git.branch.name=master
+
+
+project.deploy.package.dir=/deploy

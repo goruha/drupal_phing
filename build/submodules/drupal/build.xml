@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="drupal" default="install">
+  
+  <target name="make" description="Run drush make">
+    <echo>Project make started</echo>
+    <drush command="make" assume="yes" bin="${project.drush.bin}" proxy="${env.proxy}">
+      <param>'${project.make.file}'</param>
+      <param>'${struct.code}'</param>
+    </drush>
+
+    <mkdir dir="${struct.code}/sites/${drupal.site.subdir}" mode="0777"/>
+    <mkdir dir="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777"/>
+    <symlink target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom"/>
+    <symlink target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom"/>
+    <symlink target="${struct.drake.scripts.dir}" link="${struct.code}/scripts/drush_drake"/>
+    <echo>Project make finished</echo>
+  </target>
+
+  <target name="install" depends="make, db.drop" description="Install site">
+    <echo>Project installation started</echo>
+    <drush command="site-install" assume="yes" bin="${project.drush.bin}">
+      <option name="root">'${struct.code}'</option>
+      <option name="db-url">'${project.drupal.db.driver}://${env.db.user}:${env.db.password}@${env.db.host}/${env.db.name}'</option>
+      <option name="db-su">'${env.db.user.sudo}'</option>
+      <option name="db-su-pw">'${env.db.user.sudo.password}'</option>
+      <option name="account-name">'${project.drupal.admin.name}'</option>
+      <option name="account-pass">'${project.drupal.admin.password}'</option>
+      <option name="account-mail">'${project.drupal.admin.mail}'</option>
+      <option name="locale">'${project.drupal.locale}'</option>
+      <option name="clean-url">'${project.drupal.clean_url}'</option>
+      <option name="site-name">'${project.drupal.site.name}'</option>
+      <option name="site-mail">'${project.drupal.site.mail}'</option>
+      <option name="sites-subdir">'${drupal.site.subdir}'</option>
+      <param>'${project.drupal.profile}'</param>
+    </drush>
+    <phingcall target="settings.create"/>
+    <phingcall target="solution.install"/>
+    <echo>Project installation finished</echo>
+  </target>
+
+
+  <target name="clear" description="Clear dirs">
+    <if>
+      <available file="${struct.code}/sites/${drupal.site.subdir}"/>
+      <then>
+        <chmod file="${struct.code}/sites/${drupal.site.subdir}" mode="0777" quiet="true" failonerror="false"/>
+      </then>
+    </if>
+    <echo>Cleaned directory</echo>
+  </target>
+
+  <target name="settings.create" description="Creates Drupal settings for this domain">
+    <property name="struct.code.settings" value="${struct.code}/sites"/>
+    <property name="struct.code.settings.source.file"
+              value="${struct.build.templates}/${project.build.templates.settings}"/>
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0777"/>
+    <property file="${build}/properties/${profile}.prop" override="true"/>
+    <copy file="${struct.code.settings.source.file}"
+          tofile="${struct.code.settings}/${drupal.site.subdir}/settings.php" overwrite="true">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/settings.php" mode="0755"/>
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0755"/>
+  </target>
+
+
+  <target name="db.init" description="Create DB from dump">
+    <echo>Project sql dump import started</echo>
+    <phingcall target="db.drop"/>
+    <drush command="sql-query" bin="${project.drush.bin}">
+      <option name="input-file">'${struct.root}${project.sql.dir}/${project.sql.file}'</option>
+      <option name="strict">'0'</option>
+      <option name="root">'${struct.code}'</option>
+    </drush>
+    <echo>Project sql dump import finished</echo>
+  </target>
+
+  <target name="db.drop" depends="settings.create, db.create">
+    <drush command="sql-drop" bin="${project.drush.bin}" assume="yes">
+      <option name="root">'${struct.code}'</option>
+    </drush>
+    <echo>Project db droped</echo>
+  </target>
+
+  <target name="db.create">
+    <pdo url="${env.db.driver}:host=${env.db.host}"
+         userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
+         onerror="abort">
+      CREATE DATABASE IF NOT EXISTS ${env.db.name};
+    </pdo>
+    <echo>Project db created</echo>
+  </target>
+
+  <target name="revert" description="Revert all drupal objects">
+    <drush command="features-revert-all" assume="yes" bin="${project.drush.bin}">
+      <option name="root">${struct.code}</option>
+    </drush>
+    <phingcall target="cache.clear"/>
+    <drush command="features-revert-all" assume="yes" bin="${project.drush.bin}">
+      <option name="root">${struct.code}</option>
+    </drush>
+  </target>
+
+   <target name="cache.clear">
+    <drush command="cc" bin="${project.drush.bin}">
+      <param>all</param>
+      <option name="root">"${struct.code}"</option>
+    </drush>
+  </target>
+
+  <target name="solution.install">
+    <phingcall target="cache.clear"/>
+    <drush command="solution_install" bin="${project.drush.bin}" proxy="${env.proxy}">
+      <option name="root">"${struct.code}"</option>
+    </drush>
+  </target>
+</project>
+

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="drush">
+  <property name="project.drush.dir" value="drush" />
+  <property name="project.drush.exec" value="drush" />
+  <property name="project.drush.path" value="${struct.tools}/${project.drush.dir}" />
+
+  <if>
+    <not>
+      <available file="${project.drush.path}/${project.drush.exec}" value="Yes"/>
+    </not>
+    <then>
+      <mkdir dir="${project.drush.path}"/>
+      <gitclone repository="${project.drush.git.rep}" targetPath="${project.drush.path}"/>
+      <gitcheckout repository="${project.drush.path}" branchname="${project.drush.git.branch.name}" quiet="true"/>
+    </then>
+  </if>
+
+  <property name="project.drush.bin" value="${project.drush.path}/${project.drush.exec}" />
+
+  <property name="project.drush.task.dir" value="DrushTask" />
+  <property name="project.drush.task.class.name" value="DrushTask" />
+  <property name="project.drush.task.path" value="${struct.tools}/${project.drush.task.dir}" />
+
+  <if>
+    <not>
+      <available file="${project.drush.task.path}/${project.drush.task.class.name}.php" value="Yes"/>
+    </not>
+    <then>
+      <mkdir dir="${project.drush.task.path}"/>
+      <gitclone repository="${project.drush.task.git.rep}" targetPath="${project.drush.task.path}"/>
+      <gitcheckout repository="${project.drush.task.path}" branchname="${project.drush.task.git.branch.name}" quiet="true"/>
+    </then>
+  </if>
+
+  <taskdef name="drush" classpath="${project.drush.task.path}" classname="${project.drush.task.class.name}"/>
+</project>

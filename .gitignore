@@ -2,5 +2,11 @@
 .idea/*
 code
 code/*
-build/properties/default.prop
-
+reports
+reports/*
+tools
+tools/*
+deploy
+deploy/*
+tmp
+tmp/*
