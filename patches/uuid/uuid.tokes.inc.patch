@@ -1,0 +1,12 @@
+diff --git a/uuid.tokens.inc b/uuid.tokens.inc
+index 141c2ba..34c4be9 100755
+--- a/uuid.tokens.inc
++++ b/uuid.tokens.inc
+@@ -45,6 +45,7 @@ function uuid_token_info() {
+  * Implements hook_tokens().
+  */
+ function uuid_tokens($type, $tokens, array $data = array(), array $options = array()) {
++  $replacements = array();
+   switch ($type) {
+     case 'node':
+       $node = $data['node'];

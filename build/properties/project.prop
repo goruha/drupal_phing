@@ -1,6 +1,6 @@
 # properties common for whole project
 
-project.code.dir=/code
+project.code.dir=/www
 
 project.sql.dir=/db
 project.sql.mask=*.mysql
@@ -14,17 +14,19 @@ project.make.no.patches.txt=1
 
 project.build.templates.dir=/templates
 project.build.templates.vhost=vhost.tpl
-project.build.templates.settings=settings.php.tpl
+project.build.templates.settings=settings.php.7.tpl
 
+project.drupal.version=7
 project.drupal.admin.name=admin
 project.drupal.admin.password=admin
 project.drupal.admin.mail=admin@admin.com
-project.drupal.locale=ru
+project.drupal.locale=fr
 project.drupal.clean_url=1
-project.drupal.site.name=Forge
+project.drupal.site.name=Site name
 project.drupal.site.mail=site@admin.com
 project.drupal.db.driver=mysqli
 project.drupal.profile=solution_core
+project.drupal.translations.path=sites/all/translations
 
 project.tmp.dir=/tmp
 
@@ -32,20 +34,74 @@ project.report.dir=/reports
 project.report.tests.dir=tests
 project.report.fork.file=forks.xml
 project.report.fork.exclude=sites/all/modules/custom/*
+project.report.phplint.dir = phplint
+project.report.jslint.dir = jslint
+project.report.phpcs.dir=phpcs
+project.report.pmd.dir=pmd
+project.report.cpd.dir=cpd
+project.report.depend.dir=depend
 
 project.drake.scripts.dir=/drake
 
+project.custom=/custom
 project.custom.modules=/custom/modules
 project.custom.themes=/custom/themes
 
-project.drush.task.git.rep=git@github.com:goruha/phingdrushtask.git
+project.selenium.url=http://selenium.googlecode.com/files/selenium-server-standalone-2.22.0.jar
+; use zip version
+project.solr.url=http://www.sai.msu.su/apache/lucene/solr/3.6.0/apache-solr-3.6.0.zip
+project.solr.name=apache-solr-3.6.0
+
+project.drush.task.git.rep=git://github.com/goruha/phingdrushtask.git
 project.drush.task.git.branch.name=7.x-1.x
 
-project.drush.git.rep=git@github.com:goruha/drush.git
+project.drush.git.rep=git://github.com/goruha/drush.git
 project.drush.git.branch.name=7.x-5.x-make-local-patches-840540
+project.drush.user.id=1
 
-project.host.task.git.rep=git@github.com:goruha/phingVhosts.git
+project.jsl.dir=jsllint
+project.jsl.svn.rep=https://javascriptlint.svn.sourceforge.net/svnroot/javascriptlint/trunk
+project.jsl.exec=jsl
+
+project.phpcs.severity=5
+project.phpcs.standart=Drupal
+project.phpcs.extentions=php,module,inc,install,test,profile,theme
+
+project.depend.extensions=php,module,inc,install,test,profile,theme
+project.depend.bad.documentation=false
+project.depend.skip.annotations=false
+
+project.cpd.minTokens=30
+project.cpd.minLines=5
+
+project.phpcs.dir=phpcs
+;project.phpcs.git.rep=git://github.com/ericduran/drupalcs.git
+;project.phpcs.git.branch.name=master
+
+;project.phpcs.git.rep=git://github.com/pdrakeweb/PHP_CodeSniffer-Drupal-Standard.git
+;project.phpcs.git.branch.name=master
+
+;project.phpcs.git.rep=git://github.com/Ishino/Drupal-PHP-CodeSniffer-ruleset.git
+;project.phpcs.git.branch.name=master
+
+project.phpcs.git.rep=http://git.drupal.org/project/drupalcs.git
+project.phpcs.git.branch.name=7.x-1.0-alpha1
+
+
+project.pmd.extensions=php,module,inc,install,test,profile,theme
+project.pmd.priority=5
+project.pmd.rulesets=codesize,unusedcode
+
+project.host.task.git.rep=git://github.com/goruha/phingVhosts.git
 project.host.task.git.branch.name=master
 
+project.symlinkEx.task.git.rep=git://github.com/goruha/PhingRelativePath.git
+project.symlinkEx.task.git.branch.name=master
 
 project.deploy.package.dir=/deploy
+project.deploy.install.template=drush-install.sh
+project.deploy.install.name=drush-install.sh
+
+project.test.targets.fast=Mockup Theme
+project.test.targets.normal=
+project.test.targets.slow=

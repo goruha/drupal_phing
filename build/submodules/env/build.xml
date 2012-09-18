@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="env" basedir=".">
+  <target name="development" description="Switch to develop environment">
+    <phingcall target="set">
+      <property name="env.target" value="development" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="production" description="Switch to production environment">
+    <phingcall target="set">
+      <property name="env.target" value="production" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="debug" description="Switch to debug environment">
+    <phingcall target="set">
+      <property name="env.target" value="debug" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="staging" description="Switch to staging environment">
+    <phingcall target="set">
+      <property name="env.target" value="staging" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="set" description="Switch environment">
+    <drush command="environment-switch" bin="${project.drush.bin}">
+      <param>'${env.target}'</param>
+      <option name="root">"${struct.code}"</option>
+      <option name="user">"${project.drush.user.id}"</option>
+      <option name="force"/>
+      <option name="strict">"0"</option>
+    </drush>
+  </target>
+</project>

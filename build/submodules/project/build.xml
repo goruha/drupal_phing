@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" basedir=".">
+    <!-- PUT HERE PROJECT SPECIFIC TARGETS -->
+    <target name="make" description="Register migration">
+        <!-- PUT HERE CUSTOM ACTIONS REQUIRED ON MAKE TARGET -->
+    </target>
+</project>

@@ -1,0 +1,69 @@
+<?php
+/**
+ * @file
+ * Provide api for theme mockup
+ */
+
+/**
+ * Provide theme function for mockup
+ * @return string
+ *   Themed HTML
+ */
+function mockup_theme() {
+  $args = func_get_args();
+  if (!mockup_theme_is_enabled()) {
+    return call_user_func_array('theme', $args);
+  }
+  return '';
+}
+
+/**
+ * Function enables mockup theme
+ */
+function mockup_theme_set_on() {
+  variable_set('mockup_theme', TRUE);
+}
+
+/**
+ * Function disables mockup theme
+ */
+function mockup_theme_set_off() {
+  variable_set('mockup_theme', FALSE);
+}
+
+/**
+ * Function return if mockup theme is enabled
+ *
+ * @return bool
+ *   TRUE - if enabled, FALSE if disabled
+ */
+function mockup_theme_is_enabled() {
+  return variable_get('mockup_theme', FALSE);
+}
+
+
+/**
+ * Implements of hook_environment_switch().
+ *
+ * @param string $target_env
+ *   enviroment to enable
+ * @param string $current_env
+ *   enviroment current
+ *
+ * @return void
+ *   void
+ */
+function mockup_theme_environment_switch($target_env, $current_env) {
+  switch ($target_env) {
+    case ENVIRONMENT_DEVELOPMENT:
+      mockup_theme_set_on();
+      drupal_set_message('Enable mockups');
+      return;
+    case ENVIRONMENT_PRODUCTION:
+    case ENVIRONMENT_DEBUG:
+    case ENVIRONMENT_STAGING:
+      mockup_theme_set_off();
+      drupal_set_message('Disable mockups');
+      return;
+  }
+}

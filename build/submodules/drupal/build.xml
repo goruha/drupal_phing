@@ -1,22 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="drupal" default="install">
-  
+
+  <property name="project.symlinkEx.task.dir" value="symlinkEx" />
+  <property name="project.symlinkEx.task.class.name" value="PhingRelativePath" />
+  <property name="project.symlinkEx.task.path" value="${struct.tools}/${project.symlinkEx.task.dir}" />
+
+  <if>
+    <not>
+      <available file="${project.symlinkEx.task.path}/${project.symlinkEx.task.class.name}.php" value="Yes"/>
+    </not>
+    <then>
+      <mkdir dir="${project.symlinkEx.task.path}"/>
+      <gitclone
+          repository="${project.symlinkEx.task.git.rep}"
+          targetPath="${project.symlinkEx.task.path}"/>
+      <gitcheckout
+          repository="${project.symlinkEx.task.path}"
+          branchname="${project.symlinkEx.task.git.branch.name}" quiet="true"/>
+    </then>
+  </if>
+  <taskdef name="symlinkEx" classpath="${project.symlinkEx.task.path}" classname="${project.symlinkEx.task.class.name}"/>
+
   <target name="make" description="Run drush make">
     <echo>Project make started</echo>
     <drush command="make" assume="yes" bin="${project.drush.bin}" proxy="${env.proxy}">
       <param>'${project.make.file}'</param>
       <param>'${struct.code}'</param>
+      <option name="translations">'${project.drupal.locale}'</option>
     </drush>
 
     <mkdir dir="${struct.code}/sites/${drupal.site.subdir}" mode="0777"/>
     <mkdir dir="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777"/>
-    <symlink target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom"/>
-    <symlink target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom"/>
-    <symlink target="${struct.drake.scripts.dir}" link="${struct.code}/scripts/drush_drake"/>
+    <symlinkEx target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom"/>
+    <symlinkEx target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom"/>
+    <if>
+      <equals arg1="${project.drupal.version}" arg2="6"/>
+      <then>
+        <symlinkEx target="${struct.drake.scripts.dir}" link="${struct.code}/scripts/drush_drake"/>
+      </then>
+      <elseif>
+        <equals arg1="${project.drupal.version}" arg2="7"/>
+        <then>
+          <symlinkEx target="${struct.drake.scripts.dir}" link="${struct.code}/profiles/${project.drupal.profile}/migrations"/>
+        </then>
+      </elseif>
+      <else>
+        <echo message="Drupal version is not correct" level="error" />
+      </else>
+    </if>
+    <mkdir dir="${struct.code}/${project.drupal.translations.path}" mode="0775"/>
     <echo>Project make finished</echo>
   </target>
 
-  <target name="install" depends="make, db.drop" description="Install site">
+  <target name="install" depends="make" description="Install site">
+    <phingcall target="drupal_install"/>
+  </target>
+
+  <target name="drupal_install" depends="db.drop" description="Install site">
     <echo>Project installation started</echo>
     <drush command="site-install" assume="yes" bin="${project.drush.bin}">
       <option name="root">'${struct.code}'</option>
@@ -32,6 +72,7 @@
       <option name="site-mail">'${project.drupal.site.mail}'</option>
       <option name="sites-subdir">'${drupal.site.subdir}'</option>
       <param>'${project.drupal.profile}'</param>
+      <param>install_configure_form.locale='${project.drupal.locale}'</param>
     </drush>
     <phingcall target="settings.create"/>
     <phingcall target="solution.install"/>
@@ -49,7 +90,7 @@
     <echo>Cleaned directory</echo>
   </target>
 
-  <target name="settings.create" description="Creates Drupal settings for this domain">
+  <target name="settings.create" description="Create`s Drupal settings for this domain">
     <property name="struct.code.settings" value="${struct.code}/sites"/>
     <property name="struct.code.settings.source.file"
               value="${struct.build.templates}/${project.build.templates.settings}"/>
@@ -62,44 +103,18 @@
       </filterchain>
     </copy>
     <chmod file="${struct.code}/sites/${drupal.site.subdir}/settings.php" mode="0755"/>
-    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0755"/>
-  </target>
-
-
-  <target name="db.init" description="Create DB from dump">
-    <echo>Project sql dump import started</echo>
-    <phingcall target="db.drop"/>
-    <drush command="sql-query" bin="${project.drush.bin}">
-      <option name="input-file">'${struct.root}${project.sql.dir}/${project.sql.file}'</option>
-      <option name="strict">'0'</option>
-      <option name="root">'${struct.code}'</option>
-    </drush>
-    <echo>Project sql dump import finished</echo>
-  </target>
-
-  <target name="db.drop" depends="settings.create, db.create">
-    <drush command="sql-drop" bin="${project.drush.bin}" assume="yes">
-      <option name="root">'${struct.code}'</option>
-    </drush>
-    <echo>Project db droped</echo>
-  </target>
-
-  <target name="db.create">
-    <pdo url="${env.db.driver}:host=${env.db.host}"
-         userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
-         onerror="abort">
-      CREATE DATABASE IF NOT EXISTS ${env.db.name};
-    </pdo>
-    <echo>Project db created</echo>
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/" mode="0777"/>
   </target>
 
   <target name="revert" description="Revert all drupal objects">
     <drush command="features-revert-all" assume="yes" bin="${project.drush.bin}">
       <option name="root">${struct.code}</option>
+      <option name="user">"${project.drush.user.id}"</option>
     </drush>
     <phingcall target="cache.clear"/>
     <drush command="features-revert-all" assume="yes" bin="${project.drush.bin}">
       <option name="root">${struct.code}</option>
+      <option name="user">"${project.drush.user.id}"</option>
     </drush>
   </target>
 
@@ -107,14 +122,17 @@
     <drush command="cc" bin="${project.drush.bin}">
       <param>all</param>
       <option name="root">"${struct.code}"</option>
+      <option name="user">"${project.drush.user.id}"</option>
     </drush>
   </target>
 
   <target name="solution.install">
-    <phingcall target="cache.clear"/>
+    <!--<phingcall target="cache.clear"/>-->
     <drush command="solution_install" bin="${project.drush.bin}" proxy="${env.proxy}">
       <option name="root">"${struct.code}"</option>
+      <option name="user">"${project.drush.user.id}"</option>
     </drush>
+    <phingcall target="${env.environment}"/>
   </target>
 </project>
 

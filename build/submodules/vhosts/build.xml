@@ -31,7 +31,7 @@
     <!-- Add host to hosts file -->
     <host-add
         file="${env.host.file}"
-        name="${env.host.name}"
+        name="${env.host.name} www.${env.host.name}"
         ip="${env.host.ip}"
         use_sudo="${env.host.creation.use_sudo}"
         />

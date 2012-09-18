@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="codestyle" basedir=".">
+
+  <property name="project.phpcs.path" value="${struct.tools}/${project.phpcs.dir}" />
+
+  <if>
+    <not>
+      <available file="${project.phpcs.path}" value="Yes"/>
+    </not>
+    <then>
+      <mkdir dir="${project.phpcs.path}"/>
+      <gitclone repository="${project.phpcs.git.rep}" targetPath="${project.phpcs.path}"/>
+      <gitcheckout repository="${project.phpcs.path}" branchname="${project.phpcs.git.branch.name}" quiet="true"/>
+      <exec command="sudo ln -s ${project.phpcs.path}/${project.phpcs.standart} $(pear config-get php_dir)/PHP/CodeSniffer/Standards"/>
+    </then>
+  </if>
+
+  <target name="phpcs-custom" description="Generate checkstyle report for custom code using PHP_CodeSniffer">
+    <phingcall target="phpcs-process">
+      <property name="codestyle.php.report.file" value="checkstyle-codesniffer-custom.xml" override="TRUE"/>
+      <property name="codestyle.php.dir" value="src.php.custom" override="TRUE"/>
+    </phingcall>
+  </target>
+
+
+  <target name="phpcs" description="Generate checkstyle report for all code using PHP_CodeSniffer">
+    <phingcall target="phpcs-process">
+      <property name="codestyle.php.report.file" value="checkstyle-codesniffer.xml" override="TRUE"/>
+      <property name="codestyle.php.dir" value="src.php" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="phpcs-process" description="Generate checkstyle report using PHP_CodeSniffer" depends="setup-filesets">
+    <!-- There is no Phing task for PHP Codesniffer in v2.4.6.
+It's coming for v2.5. Execute while we wait. -->
+    <mkdir dir="${struct.report.phpcs}"/>
+    <phpcodesniffer
+        standard="${project.phpcs.standart}"
+        showSniffs="true"
+        showSources="true"
+        showWarnings="true">
+      <fileset refid="${codestyle.php.dir}"/>
+      <formatter type="default" usefile="false"/>
+      <formatter type="checkstyle" outfile="${struct.report.phpcs}/${codestyle.php.report.file}"/>
+    </phpcodesniffer>
+  </target>
+</project>

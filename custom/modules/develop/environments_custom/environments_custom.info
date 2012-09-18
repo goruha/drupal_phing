@@ -1,0 +1,7 @@
+; $Id$
+name = Environments custom
+description = Environments for current site
+core = 7.x
+package = "Develop"
+project = "Develop"
+dependencies[] = environment

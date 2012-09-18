@@ -34,10 +34,16 @@
   <property name="struct.report" value="${struct.root}${project.report.dir}"/>
   <property name="struct.report.tests" value="${struct.report}/${project.report.tests.dir}"/>
   <property name="struct.report.phplint" value="${struct.report}/${project.report.phplint.dir}"/>
-  
+  <property name="struct.report.jslint" value="${struct.report}/${project.report.jslint.dir}"/>
+  <property name="struct.report.phpcs" value="${struct.report}/${project.report.phpcs.dir}"/>
+  <property name="struct.report.pmd" value="${struct.report}/${project.report.pmd.dir}"/>
+  <property name="struct.report.cpd" value="${struct.report}/${project.report.cpd.dir}"/>
+  <property name="struct.report.depend" value="${struct.report}/${project.report.depend.dir}"/>
+
   <property name="struct.logs" value="${struct.root}${project.logs.dir}"/>
   <property name="struct.tools" value="${struct.root}${project.tools.dir}"/>
 
+  <property name="struct.custom" value="${struct.root}${project.custom}"/>
   <property name="struct.custom.modules" value="${struct.root}${project.custom.modules}"/>
   <property name="struct.custom.themes" value="${struct.root}${project.custom.themes}"/>
 
@@ -67,13 +73,48 @@
   <import file="${struct.build.submodules}/vhosts/build.xml"/>
   <import file="${struct.build.submodules}/drupal/build.xml"/>
   <import file="${struct.build.submodules}/deploy/build.xml"/>
+  <import file="${struct.build.submodules}/lint/build.xml"/>
+  <import file="${struct.build.submodules}/pmd/build.xml"/>
+  <import file="${struct.build.submodules}/cpd/build.xml"/>
+  <import file="${struct.build.submodules}/depend/build.xml"/>
+  <import file="${struct.build.submodules}/test/build.xml"/>
+  <import file="${struct.build.submodules}/codestyle/build.xml"/>
+  <import file="${struct.build.submodules}/project/build.xml"/>
+  <import file="${struct.build.submodules}/env/build.xml"/>
+  <import file="${struct.build.submodules}/selenium/build.xml"/>
+  <import file="${struct.build.submodules}/solr/build.xml"/>
+  <import file="${struct.build.submodules}/db/build.xml"/>
+
 
   <target name="install" depends="clear" description="Install site">
+    <phingcall target="solr-run"/>
     <phingcall target="drupal.install"/>
   </target>
 
-  <target name="verify" description="Verify code" depends="clear,
-                                                           lint-php"/>
+  <target name="make" depends="clear" description="Install site">
+    <phingcall target="drupal.make"/>
+    <phingcall target="project.make"/>
+  </target>
+
+  <target name="remake" depends="clear" description="Install site">
+    <phingcall target="make"/>
+    <phingcall target="settings.create"/>
+  </target>
+
+
+  <target name="reinstall" depends="clear" description="Install site">
+    <phingcall target="remake"/>
+    <phingcall target="solr-run"/>
+    <phingcall target="solution.install"/>
+  </target>
+
+  <target name="update" description="Update site">
+    <phingcall target="settings.create"/>
+    <phingcall target="solr-run"/>
+    <phingcall target="solution.install"/>
+  </target>
+
+  <target name="verify" description="Verify code" depends="clear"/>
 
   <target name="clear" description="Clear dirs">
     <phingcall target="drupal.clear"/>
@@ -88,7 +129,14 @@
     <echo>Cleaned directory</echo>
   </target>
 
-  <!-- ### Setup file sets
+  <target name="test" description="Runs unit tests">
+    <phingcall target="selenium-run"/>
+    <phingcall target="run"/>
+    <phingcall target="selenium-stop"/>
+  </target>
+
+
+    <!-- ### Setup file sets
 
 Setup file sets - patterns for different aspects of the source code.
 These are used in other targets.
@@ -155,7 +203,7 @@ called from `init` target. -->
     </fileset>
 
     <!-- Custom PHP files -->
-    <fileset id="src.php.custom" dir="${struct.code}">
+    <fileset id="src.php.custom" dir="${struct.custom}">
       <patternset refid="php"/>
       <patternset refid="generated"/>
     </fileset>
@@ -181,28 +229,6 @@ called from `init` target. -->
       <patternset refid="contrib"/>
     </fileset>
 
-  </target>
-
-
-  <target name="inspect_code" description="Inspect code for code style">
-    <echo>Here will be code to make inspect code</echo>
-  </target>
-
-  <target name="tests_run" description="Runs unit tests">
-    <delete dir="${struct.report.tests}" includeemptydirs="true"/>
-    <mkdir dir="${struct.report.tests}"/>
-    <echo>Clean test temporary files</echo>
-    <drush command="test-clean" assume="yes" bin="${project.drush.bin">
-      <option name="root">${struct.code}</option>
-    </drush>
-    <echo>Run tests</echo>
-    <drush command="test-run" assume="yes" bin="${project.drush.bin}">
-      <option name="root">'${struct.code}'</option>
-      <option name="xml">'${struct.report.tests}'</option>
-      <option name="uri">'http://${env.host.name}'</option>
-      <param>'${project.test.targets}'</param>
-    </drush>
-    <echo>Run tests finished</echo>
   </target>
 
   <target name="test-forks" description="Check if project contains forks" depends="clear">
@@ -246,14 +272,6 @@ called from `init` target. -->
     </drush>
 
     <echo>Check for forks finished</echo>
-  </target>
-
-  <target name="lint-php"
-          description="Check PHP files for syntax errors using PHPLint">
-    <mkdir dir="${struct.report.phplint}"/>
-    <phplint haltonfailure="true" tofile="${struct.report.phplint}/phplint.xml" level="${project.phplint.level}">
-      <fileset refid="src.php"/>
-    </phplint>
   </target>
 </project>
 

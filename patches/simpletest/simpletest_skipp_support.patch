@@ -1,0 +1,51 @@
+diff --git a/modules/simpletest/drupal_web_test_case.php b/modules/simpletest/drupal_web_test_case.php
+index 251c5c1..0333f14 100644
+--- a/modules/simpletest/drupal_web_test_case.php
++++ b/modules/simpletest/drupal_web_test_case.php
+@@ -85,6 +85,26 @@ abstract class DrupalTestCase {
+    */
+   protected $setup = FALSE;
+ 
++
++  /**
++   * Flag to indicate whether the test should be skipped.
++   *
++   */
++  protected $skip = FALSE;
++
++  /**
++   * Set skip flag
++   *
++   * @param bool $skip
++   *   Skip value
++   *
++   * @return NULL
++   *   NULL
++   */
++  protected function skip($skip = TRUE) {
++    $this->skip = $skip;
++  }
++
+   /**
+    * Constructor for DrupalTestCase.
+    *
+@@ -495,12 +515,13 @@ abstract class DrupalTestCase {
+         $completion_check_id = DrupalTestCase::insertAssert($this->testId, $class, FALSE, t('The test did not complete due to a fatal error.'), 'Completion check', $caller);
+         $this->setUp();
+         if ($this->setup) {
+-          try {
+-            $this->$method();
+-            // Finish up.
+-          }
+-          catch (Exception $e) {
+-            $this->exceptionHandler($e);
++          if (!$this->skip) {
++            try {
++              $this->$method();
++              // Finish up.
++            } catch (Exception $e) {
++              $this->exceptionHandler($e);
++            }
+           }
+           $this->tearDown();
+         }

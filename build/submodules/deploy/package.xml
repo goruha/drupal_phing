@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="package" basedir="." default="create">
+
+  <patternset id="package.files">
+    <include name="**/*"/>
+    <exclude name="CHANGELOG.txt"/>
+    <exclude name="COPYRIGHT.txt"/>
+    <exclude name="INSTALL.*.txt"/>
+    <exclude name="INSTALL.txt"/>
+    <exclude name="LICENSE.txt"/>
+    <exclude name="MAINTAINERS.txt"/>
+    <exclude name="UPGRADE.txt"/>
+  </patternset>
+  
+  <target name="create" depends="package.clear">
+    <delete dir="${struct.tmp}/package" />
+    <mkdir dir="${struct.tmp}" />
+  
+    <phingcall target="make">
+      <property name="struct.code" value="${struct.tmp}/package" override="TRUE"/>
+    </phingcall>
+  
+    <phingcall target="settings.create">
+      <property name="struct.code" value="${struct.tmp}/package" override="TRUE"/>
+      <property name="profile" value="${env.deploy.package.profile}" override="TRUE"/>
+    </phingcall>
+
+    <phingcall target="install.create">
+      <property name="struct.code" value="${struct.tmp}/package" override="TRUE"/>
+      <property name="profile" value="${env.deploy.package.profile}" override="TRUE"/>
+    </phingcall>
+  
+    <copy todir="${struct.deploy.package.dir}" >
+      <fileset defaultexcludes="true" expandsymboliclinks="true" dir="${struct.tmp}/package">
+        <patternset refid="package.files"/>
+      </fileset>
+    </copy>
+  </target>
+
+  
+  <target name="clear">
+    <delete dir="${struct.deploy.package.dir}" />
+  </target>
+</project>

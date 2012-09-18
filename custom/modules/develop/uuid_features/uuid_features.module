@@ -1,0 +1,128 @@
+<?php
+/**
+ * @file
+ * Itergrated uuid with features
+ */
+
+
+/**
+ * Implements hook_features_api().
+ */
+function uuid_features_features_api() {
+  $components = array();
+
+  $components['uuid_node'] = array(
+    'name' => t('Content'),
+    'features_source' => TRUE,
+    'default_hook' => 'uuid_features_default_content',
+    'default_file' => FEATURES_DEFAULTS_INCLUDED,
+    'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_node.features.inc',
+  );
+
+  if (module_exists('taxonomy')) {
+    $components['uuid_term'] = array(
+      'name' => t('Taxonomy Term'),
+      'default_hook' => 'uuid_features_default_terms',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_term.features.inc',
+    );
+  }
+
+  // Depends on http://drupal.org/node/808690
+  if (module_exists('file')) {
+    $components['uuid_file'] = array(
+      'name' => t('File'),
+      'default_hook' => 'uuid_features_default_files',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_file.features.inc',
+    );
+  }
+
+  $components['uuid_user'] = array(
+    'name' => t('User'),
+    'features_source' => TRUE,
+    'default_hook' => 'uuid_features_default_users',
+    'default_file' => FEATURES_DEFAULTS_INCLUDED,
+    'file' => drupal_get_path('module', 'uuid_features') . '/includes/uuid_user.features.inc',
+  );
+
+  return $components;
+}
+
+/**
+ * Load all include files for enabled modules that this module provides
+ * on-behalf-of functionality for.
+ */
+function uuid_features_load_module_includes() {
+  static $loaded = FALSE;
+
+  if (!$loaded) {
+    $inc_path = drupal_get_path('module', 'uuid_features') . '/includes/modules';
+    foreach (module_list() as $module) {
+      $file = "$inc_path/$module.inc";
+      if (file_exists($file)) {
+        include_once DRUPAL_ROOT . '/' . $file;
+      }
+    }
+    $loaded = TRUE;
+  }
+}
+
+/**
+ * Get fields
+ *
+ * @param string $bundle_type
+ *   bundle type
+ * @param string $type
+ *   type
+ * @param string $field_type
+ *   field type
+ *
+ * @return array
+ *   array of fields
+ */
+function _uuid_features_get_fields($bundle_type, $type, $field_type) {
+  $entityreference_fields = array();
+  $fields = field_info_fields();
+  foreach ($fields as $field_name => $field) {
+    if ($field['type'] == $field_type
+      && isset($field['bundles'][$bundle_type])
+      && in_array($type, $field['bundles'][$bundle_type])
+    ) {
+      $entityreference_fields[$field_name] = $field;
+    }
+  }
+  return $entityreference_fields;
+}
+
+/**
+ * Implements hook_field_features_export_render_alter().
+ * Replace filefield id's with a uuid for default file.
+ */
+function uuid_features_field_features_export_render_alter(&$field) {
+  switch ($field['field_config']['type']) {
+    case 'image':
+    case 'file':
+      if (!empty($field['field_config']['settings']['default_image'])) {
+        $target = file_load($field['field_config']['settings']['default_image']);
+        $field['field_config']['settings']['default_image'] = $target->uuid;
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_field_features_rebuild_alter().
+ * Replace filefield uuid's with a field id for default file.
+ */
+function uuid_features_field_features_rebuild_alter(&$field) {
+  switch ($field['field_config']['type']) {
+    case 'image':
+    case 'file':
+      if (isset($field['field_config']['settings']['default_image'])) {
+        $id = entity_get_id_by_uuid('file', array($field['field_config']['settings']['default_image']));
+        $field['field_config']['settings']['default_image'] = !empty($id) ? current($id) : 0;
+      }
+      break;
+  }
+}

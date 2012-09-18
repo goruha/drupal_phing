@@ -1,0 +1,12 @@
+diff --git a/l10n_update.module b/l10n_update.module
+index 27d228d..b096d6a 100644
+--- a/l10n_update.module
++++ b/l10n_update.module
+@@ -130,6 +130,7 @@ function l10n_update_form_alter(&$form, $form_state, $form_id) {
+  */
+ function l10n_update_modules_enabled($modules) {
+   module_load_include('project.inc', 'l10n_update');
++  l10n_update_get_projects(TRUE, TRUE);
+   l10n_update_project_refresh($modules);
+ }
+ 

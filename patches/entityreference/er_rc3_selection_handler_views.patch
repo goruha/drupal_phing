@@ -1,0 +1,20 @@
+diff --git a/plugins/selection/EntityReference_SelectionHandler_Views.class.php b/plugins/selection/EntityReference_SelectionHandler_Views.class.php
+old mode 100644
+new mode 100755
+index e3f87f0..92fa7a1
+--- a/plugins/selection/EntityReference_SelectionHandler_Views.class.php
++++ b/plugins/selection/EntityReference_SelectionHandler_Views.class.php
+@@ -134,6 +134,13 @@ class EntityReference_SelectionHandler_Views implements EntityReference_Selectio
+   }
+ 
+   /**
++   * Implements EntityReferenceHandler::validateAutocompleteInput().
++   */
++  public function validateAutocompleteInput($input, &$element, &$form_state, $form) {
++    return NULL;
++  }
++
++  /**
+    * Implements EntityReferenceHandler::getLabel().
+    */
+   public function getLabel($entity) {

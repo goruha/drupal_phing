@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="php" basedir="." default="lint">
+
+  <target name="lint"
+          description="Check PHP files for syntax errors using PHPLint">
+    <phingcall target="lint-process">
+      <property name="lint.php.report.filename" value="phplint.xml" override="TRUE"/>
+      <property name="lint.php.fileset.id" value="src.php" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="lint-custom"
+          description="Check PHP files for syntax errors using PHPLint">
+    <phingcall target="lint-process">
+      <property name="lint.php.report.filename" value="phplint-custom.xml" override="TRUE"/>
+      <property name="lint.php.fileset.id" value="src.php.custom" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="lint-process"
+          description="Check PHP files for syntax errors using PHPLint" depends="setup-filesets">
+    <mkdir dir="${struct.report.phplint}"/>
+    <phplint haltonfailure="true" tofile="${struct.report.phplint}/${lint.php.report.filename}" level="${project.phplint.level}">
+      <fileset refid="${lint.php.fileset.id}"/>
+    </phplint>
+  </target>
+</project>
+

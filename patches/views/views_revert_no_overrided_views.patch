@@ -1,0 +1,13 @@
+diff --git a/drush/views.drush.inc b/drush/views.drush.inc
+index 4116d30..3958c9c 100644
+--- a/drush/views.drush.inc
++++ b/drush/views.drush.inc
+@@ -127,7 +127,7 @@ function views_revert_views() {
+ 
+   // Return early if there are no overridden views in the system.
+   if (empty($overridden)) {
+-    return drush_set_error(dt('There are no overridden views in the system.'));
++    return drush_log(dt('There are no overridden views in the system.'), 'status');
+   }
+ 
+   // If the user specified in the command the views to be overridden.

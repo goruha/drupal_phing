@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="solr" basedir=".">
+    <property name="project.solr.dir" value="solr" />
+    <property name="project.solr.exec" value="start.jar" />
+    <property name="project.solr.zip" value="solr.zip" />
+    <property name="project.solr.path" value="${struct.tools}/${project.solr.dir}" />
+    <property name="project.solr.exec.dir" value="${project.solr.path}/${project.solr.name}/example" />
+    <if>
+        <not>
+            <available file="${project.solr.exec.dir}/${project.solr.exec}" value="Yes"/>
+        </not>
+        <then>
+            <mkdir dir="${project.solr.path}"/>
+            <httpget url="${project.solr.url}" dir="${project.solr.path}" filename="${project.solr.zip}"/>
+            <unzip file="${project.solr.path}/${project.solr.zip}" todir="${project.solr.path}/" />
+            <delete file="${project.solr.path}/${project.solr.zip}" />
+        </then>
+    </if>
+
+    <target name="solr-update-configs" description="Update solr configs">
+      <copy file="${struct.build.templates}/solr/solrconfig.xml" tofile="${project.solr.exec.dir}/solr/conf/solrconfig.xml" overwrite="true"/>
+      <copy file="${struct.build.templates}/solr/schema.xml" tofile="${project.solr.exec.dir}/solr/conf/schema.xml" overwrite="true"/>
+    </target>
+
+    <target name="solr-run" description="Run solr" depends="solr-update-configs">
+      <echo>${env.java} -jar ${project.solr.exec} -Djetty.port=1234</echo>
+      <property name="solr.is.runing" value="0" />
+      <exec command="ps ax | grep ' -jar -Djetty.port=1234 ${project.solr.exec}' | grep -cv grep" outputProperty="solr.is.runing" />
+        <echo>${solr.is.runing}</echo>
+        <if>
+          <and>
+            <equals arg1="${solr.is.runing}" arg2="0" />
+            <equals arg1="${env.solr.start}" arg2="1" />
+          </and>
+          <then>
+            <exec command="${env.java} -jar -Djetty.port=1234 ${project.solr.exec}" dir="${project.solr.exec.dir}" spawn="TRUE"/>
+          </then>
+        </if>
+    </target>
+
+    <target name="solr-stop" description="Run solr">
+      <echo msg="ps ax | grep ' -jar -Djetty.port=1234 ${project.solr.exec}' | grep -v grep | awk '{print $1}' | xargs kill" />
+      <exec command="ps ax | grep ' -jar -Djetty.port=1234 ${project.solr.exec}' | grep -v grep | awk '{print $1}' | xargs kill" escape="false"/>
+    </target>
+</project>

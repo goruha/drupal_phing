@@ -1,0 +1,200 @@
+<?php
+
+/**
+ * @file
+ * Provide code for implement custom environments
+ */
+
+define('ENVIRONMENT_DEVELOPMENT', 'development');
+define('ENVIRONMENT_PRODUCTION', 'production');
+define('ENVIRONMENT_DEBUG', 'debug');
+define('ENVIRONMENT_STAGING', 'staging');
+
+
+/**
+ * Implements of hook_environment_switch().
+ *
+ * @param string $target_env
+ *   enviroment to enable
+ * @param string $current_env
+ *   enviroment current
+ *
+ * @return void
+ *   void
+ */
+function environments_custom_environment_switch($target_env, $current_env) {
+  $debug_modules = environments_custom_module_exist(array(
+    'backup_migrate',
+    'update',
+    'hacked',
+    'hacked_make',
+    'devel',
+    'devel_generate',
+    'devel_node_access',
+    'simpletest',
+    'simpletest_clone',
+    'imagecache_ui',
+    'views_ui',
+    'seochecklist',
+    'migrate_ui',
+    'maillog',
+  ));
+
+  $devel_modules = environments_custom_module_exist(array(
+    'stage_file_proxy',
+  ));
+
+  switch ($target_env) {
+    case ENVIRONMENT_PRODUCTION:
+      $debug_permissions = environment_custom_debug_permissions(FALSE);
+      drupal_set_message(t('Disabled debug permissions: <br />@modules', array(
+        '@modules' => implode(', ', $debug_permissions),
+      )));
+      module_disable($debug_modules);
+      drupal_set_message(t('Disabled debug modules: <br />@modules', array(
+        '@modules' => implode(', ', $debug_modules),
+      )));
+      module_disable($devel_modules);
+      drupal_set_message(t('Disabled developement modules: <br />@modules', array(
+        '@modules' => implode(', ', $devel_modules),
+      )));
+      variable_set('error_level', ERROR_REPORTING_HIDE);
+      variable_set('maillog_send', 1);
+      break;
+
+    case ENVIRONMENT_DEVELOPMENT:
+      module_enable($debug_modules);
+      drupal_set_message(t('Enabled debug modules: <br />@modules', array(
+        '@modules' => implode(', ', $debug_modules),
+      )));
+      $debug_permissins = environment_custom_debug_permissions(TRUE);
+      drupal_set_message(t('Enabled debug permissions: <br />@modules', array(
+        '@modules' => implode(', ', $debug_permissins),
+      )));
+      module_enable($devel_modules);
+      drupal_set_message(t('Enabled development modules: <br />@modules', array(
+        '@modules' => implode(', ', $devel_modules),
+      )));
+      variable_set('error_level', ERROR_REPORTING_DISPLAY_ALL);
+      variable_set('maillog_send', 0);
+      break;
+
+    case ENVIRONMENT_DEBUG:
+      module_enable($debug_modules);
+      drupal_set_message(t('Enabled debug modules: <br />@modules', array(
+        '@modules' => implode(', ', $debug_modules),
+      )));
+      $debug_permissins = environment_custom_debug_permissions(TRUE);
+      drupal_set_message(t('Enabled debug permissions: <br />@modules', array(
+        '@modules' => implode(', ', $debug_permissins),
+      )));
+      module_disable($devel_modules);
+      drupal_set_message(t('Disabled developement modules: <br />@modules', array(
+        '@modules' => implode(', ', $devel_modules),
+      )));
+      variable_set('error_level', ERROR_REPORTING_DISPLAY_SOME);
+      variable_set('maillog_send', 1);
+      break;
+
+    case ENVIRONMENT_STAGING:
+      module_enable($debug_modules);
+      drupal_set_message(t('Enabled debug modules: <br />@modules', array(
+        '@modules' => implode(', ', $debug_modules),
+      )));
+      $debug_permissins = environment_custom_debug_permissions(TRUE);
+      drupal_set_message(t('Enabled debug permissions: <br />@modules', array(
+        '@modules' => implode(', ', $debug_permissins),
+      )));
+      module_enable($devel_modules);
+      drupal_set_message(t('Enabled development modules: <br />@modules', array(
+        '@modules' => implode(', ', $devel_modules),
+      )));
+      variable_set('error_level', ERROR_REPORTING_HIDE);
+      variable_set('maillog_send', 0);
+      break;
+  }
+  return;
+}
+
+/**
+ * Implements of hook_environment().
+ *
+ * @return array
+ *   Describes environments
+ */
+function environments_custom_environment() {
+  return array(
+    ENVIRONMENT_DEBUG => array(
+      'label' => t('Debug'),
+      'description' => t('Environment for debug.'),
+      'allowed' => array(
+        'default' => FALSE,
+      ),
+    ),
+    ENVIRONMENT_STAGING => array(
+      'label' => t('Staging'),
+      'description' => t('Environment for staging site.'),
+      'allowed' => array(
+        'default' => FALSE,
+      ),
+    ),
+  );
+}
+
+/**
+ * Set permissions for debug.
+ *
+ * @param boolean $status
+ *   TRUE - enable permission
+ *   FALSE - disable permission
+ *
+ * @return array
+ *   Permissions list.
+ */
+function environment_custom_debug_permissions($status = TRUE) {
+  $roles = array(
+    // Anonymous.
+    1,
+    // Authenticated.
+    2,
+  );
+
+  $permissions = array(
+    'access devel information' => $status,
+  );
+
+  foreach ($roles as $role) {
+    // Set permission to get access to devel info.
+    user_role_change_permissions($role, $permissions);
+  }
+
+  return array_keys($permissions);
+}
+
+
+/**
+ * Check module existence. Remove not existing from array.
+ *
+ * @param array $modules
+ *   Modules list.
+ *
+ * @return array
+ *   Existing modules list.
+ */
+function environments_custom_module_exist($modules = array()) {
+  // Get all modules in system.
+  $all_modules = db_query("
+      SELECT name
+      FROM {system}
+      WHERE type = 'module'
+    ")->fetchAllAssoc('name');
+
+  // Remove module from $modules if there is no such module in system.
+  foreach ($modules as $key => $module) {
+    if (!array_key_exists($module, $all_modules)) {
+      unset($modules[$key]);
+    }
+  }
+
+  return $modules;
+}

@@ -1,0 +1,13 @@
+diff --git a/simpletest_clone_test_case.php b/simpletest_clone_test_case.php
+index cb88f9b..67226ac 100644
+--- a/simpletest_clone_test_case.php
++++ b/simpletest_clone_test_case.php
+@@ -44,7 +44,7 @@ class SimpleTestCloneTestCase extends DrupalWebTestCase {
+       ->fields(array('last_prefix' => $this->databasePrefix))
+       ->condition('test_id', $this->testId)
+       ->execute();
+-
++    drupal_static_reset();
+     // Store necessary current values before switching to prefixed database.
+     $this->originalLanguage = $language;
+     $this->originalLanguageDefault = variable_get('language_default');

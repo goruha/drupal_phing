@@ -1,0 +1,25 @@
+diff --git a/l10n_update.check.inc b/l10n_update.check.inc
+index 066ae1f..b18be39 100644
+--- a/l10n_update.check.inc
++++ b/l10n_update.check.inc
+@@ -287,8 +287,18 @@ function l10n_update_source_check_download($source) {
+ function l10n_update_source_check_file($source, $directory = 'translations') {
+   $filename = '/' . preg_quote($source->filename) . '$/';
+ 
+-  // Using the 'name' key will return
+-  if ($files = drupal_system_listing($filename, $directory, 'name', 0)) {
++  $key = 'name';
++  $min_depth = 0;
++  $module_path = drupal_get_path($source->project_type, $source->project);
++  $module_path = "$module_path/$directory";
++  $language_file = '/' . preg_quote("$source->language.po") . '$/';
++
++  // Using the 'name' key will return.
++  $files = drupal_system_listing($filename, $directory, $key, $min_depth);
++  $files += file_scan_directory($module_path, $filename, array('key' => $key, 'min_depth' => $min_depth));
++  $files += file_scan_directory($module_path, $language_file, array('key' => $key, 'min_depth' => $min_depth));
++
++  if ($files) {
+     $file = current($files);
+     $source->type = 'localfile';
+     $source->uri = $file->uri;

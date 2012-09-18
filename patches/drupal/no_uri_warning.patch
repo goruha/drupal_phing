@@ -1,0 +1,13 @@
+diff --git a/includes/file.inc b/includes/file.inc
+index c5e5cf0..afff225 100644
+--- a/includes/file.inc
++++ b/includes/file.inc
+@@ -1238,7 +1238,7 @@ function file_delete(stdClass $file, $force = FALSE) {
+     else {
+       watchdog('file', 'File %file could not be deleted because it is not a valid URI. This may be caused by improper use of file_delete() or a missing stream wrapper.', array('%file' => $file->uri));
+     }
+-    drupal_set_message(t('The specified file %file could not be deleted, because it is not a valid URI. More information is available in the system log.', array('%file' => $file->uri)), 'error');
++    drupal_set_message(t('The specified file %file could not be deleted, because it is not a valid URI. More information is available in the system log.', array('%file' => $file->uri)), 'warning');
+     return FALSE;
+   }
+ 

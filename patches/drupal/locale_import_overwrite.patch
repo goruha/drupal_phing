@@ -1,0 +1,13 @@
+diff --git a/includes/locale.inc b/includes/locale.inc
+index 7fb8d64..237d8f9 100644
+--- a/includes/locale.inc
++++ b/includes/locale.inc
+@@ -2304,7 +2304,7 @@ function _locale_batch_import($filepath, &$context) {
+   // we can extract the language code to use for the import from the end.
+   if (preg_match('!(/|\.)([^\./]+)\.po$!', $filepath, $langcode)) {
+     $file = (object) array('filename' => drupal_basename($filepath), 'uri' => $filepath);
+-    _locale_import_read_po('db-store', $file, LOCALE_IMPORT_KEEP, $langcode[2]);
++    _locale_import_read_po('db-store', $file, LOCALE_IMPORT_OVERWRITE, $langcode[2]);
+     $context['results'][] = $filepath;
+   }
+ }

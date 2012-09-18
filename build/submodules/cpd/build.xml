@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="cpd" basedir=".">
+
+  <target name="cpd-custom" description="Run Project Copy/Paste Detector (CPD) for PHP Code for custom code">
+    <phingcall target="cpd-process">
+      <property name="cpd.fileset" value="src.php.custom" override="TRUE"/>
+      <property name="cpd.report.file" value="cpd-custom.xml" override="TRUE"/>
+    </phingcall>
+  </target>
+
+
+  <target name="cpd" description="Run Copy/Paste Detector (CPD) for PHP Code for all code">
+    <phingcall target="cpd-process">
+      <property name="cpd.fileset" value="src.php" override="TRUE"/>
+      <property name="cpd.report.file" value="cpd.xml" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="cpd-process" description="Run Copy/Paste Detector (CPD) for PHP Code" depends="setup-filesets">
+    <mkdir dir="${struct.report.cpd}"/>
+    <phpcpd minTokens="${project.cpd.minTokens}" minLines="${project.cpd.minLines}" >
+      <fileset refid="${cpd.fileset}"/>
+      <formatter type="pmd" outfile="${struct.report.cpd}/${cpd.report.file}" usefile="true"/>
+    </phpcpd>
+  </target>
+</project>

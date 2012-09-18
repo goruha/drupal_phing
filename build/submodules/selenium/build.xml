@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="selenium" basedir=".">
+    <property name="project.selenium.dir" value="selenium" />
+    <property name="project.selenium.exec" value="selenium.jar" />
+    <property name="project.selenium.path" value="${struct.tools}/${project.selenium.dir}" />
+    <if>
+        <not>
+            <available file="${project.selenium.path}/${project.selenium.exec}" value="Yes"/>
+        </not>
+        <then>
+            <mkdir dir="${project.selenium.path}"/>
+            <httpget url="${project.selenium.url}" dir="${project.selenium.path}" filename="${project.selenium.exec}"/>
+        </then>
+    </if>
+
+    <target name="selenium-run" description="Run selenium">
+        <exec command="${env.java} -jar ${project.selenium.path}/${project.selenium.exec}" spawn="TRUE"/>
+    </target>
+
+    <target name="selenium-stop" description="Run selenium">
+        <echo msg="ps ax | grep '${project.selenium.path}/${project.selenium.exec}' | grep -v grep | awk '{print $1}' | xargs kill" />
+        <exec command="ps ax | grep '${project.selenium.path}/${project.selenium.exec}' | grep -v grep | awk '{print $1}' | xargs kill" escape="false"/>
+    </target>
+</project>

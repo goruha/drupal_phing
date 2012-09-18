@@ -1,0 +1,49 @@
+diff --git a/uuid.core.inc b/uuid.core.inc
+index 956330d..957d9f1 100644
+--- a/uuid.core.inc
++++ b/uuid.core.inc
+@@ -252,8 +252,8 @@ function user_reference_field_uuid_presave($entity_type, $entity, $field, $insta
+  */
+ function entityreference_field_uuid_load($entity_type, $entity, $field, $instance, $langcode, &$items) {
+   foreach ($items as &$item) {
+-    $info = entity_get_info($item['target_type']);
+-    entity_property_id_to_uuid($item, $item['target_type'], $info['entity keys']['id']);
++    $info = entity_get_info($field['settings']['target_type']);
++    entity_property_id_to_uuid($item, $field['settings']['target_type'], $info['entity keys']['id']);
+   }
+ }
+ 
+@@ -262,8 +262,8 @@ function entityreference_field_uuid_load($entity_type, $entity, $field, $instanc
+  */
+ function entityreference_field_uuid_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+   foreach ($items as &$item) {
+-    $info = entity_get_info($item['target_type']);
+-    entity_property_uuid_to_id($item, $item['target_type'], $info['entity keys']['id']);
++    $info = entity_get_info($field['settings']['target_type']);
++    entity_property_uuid_to_id($item, $field['settings']['target_type'], $info['entity keys']['id']);
+   }
+ }
+ 
+diff --git a/uuid.entity.inc b/uuid.entity.inc
+index 53d84d8..4353cc6 100644
+--- a/uuid.entity.inc
++++ b/uuid.entity.inc
+@@ -294,7 +294,7 @@ function entity_uuid_delete($entity_type, $uuid) {
+     // Fetch the local ID by its UUID.
+     $ids = entity_get_id_by_uuid($entity_type, array($uuid));
+     $id = reset($ids);
+-
++    $entity = entity_load($entity_type, array($id));
+     // Let other modules transform UUID references to local ID references.
+     $hook = 'entity_uuid_delete';
+     foreach (module_implements($hook) as $module) {
+@@ -304,6 +304,9 @@ function entity_uuid_delete($entity_type, $uuid) {
+       }
+     }
+ 
++    if (empty($entity)) {
++      return FALSE;
++    }
+     // Delete the entity.
+     return entity_delete($entity_type, $id);
+   }

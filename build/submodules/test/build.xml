@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="tests" default="run">
+
+    <condition property="test-type" value="all">
+        <not>
+            <isset property="test-type"/>
+        </not>
+    </condition>
+
+    <if>
+      <equals arg1="${test-type}" arg2="fast" casesensitive="false" trim="true"/>
+      <then>
+        <property name="target" value="${project.test.targets.fast}"/>
+      </then>
+      <elseif>
+        <equals arg1="${test-type}" arg2="normal" casesensitive="false" trim="true"/>
+        <then>
+          <property name="target" value="${project.test.targets.normal}"/>
+        </then>
+      </elseif>
+      <elseif>
+        <equals arg1="${test-type}" arg2="slow" casesensitive="false" trim="true"/>
+        <then>
+          <property name="target" value="${project.test.targets.slow}"/>
+        </then>
+      </elseif>
+      <else>
+          <property name="target" value="${project.test.targets.fast}, ${project.test.targets.normal}, ${project.test.targets.slow}"/>
+      </else>
+    </if>
+
+    <condition property="profile" value="default">
+        <not>
+            <isset property="profile"/>
+        </not>
+    </condition>
+
+    <target name="run" description="Runs unit tests">
+        <delete dir="${struct.report.tests}" includeemptydirs="true"/>
+        <mkdir dir="${struct.report.tests}"/>
+
+        <echo>Run tests</echo>
+        <drush command="test-run" assume="yes" bin="${project.drush.bin}">
+            <option name="root">'${struct.code}'</option>
+            <option name="xml">'${struct.report.tests}'</option>
+            <option name="uri">'http://${env.host.name}'</option>
+            <option name="user">"${project.drush.user.id}"</option>
+            <param>'${target}'</param>
+        </drush>
+        <echo>Run tests finished</echo>
+    </target>
+
+    <target name="test-clean" description="Runs unit tests">
+      <echo>Clean test temporary files</echo>
+
+      <drush command="test-clean" assume="yes" bin="${project.drush.bin}">
+        <option name="root">${struct.code}</option>
+        <option name="user">"${project.drush.user.id}"</option>
+      </drush>
+    </target>
+</project>

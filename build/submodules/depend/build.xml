@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="depend" basedir=".">
+
+  <target name="depend-custom" description="Run software analyzer and metric tool for PHP Code for custom code">
+    <phingcall target="depend-process">
+      <property name="depend.fileset" value="src.php.custom" override="TRUE"/>
+      <property name="depend.report.jdepend.xml.file" value="depend-custom.xml" override="TRUE"/>
+      <property name="depend.report.jdepend.chart.file" value="depend-chart-custom.svg" override="TRUE"/>
+      <property name="depend.report.overview.pyramid.file" value="depend-pyramid-custom.svg" override="TRUE"/>
+      <property name="depend.report.phpunit.xml.file" value="depend-phpunit-custom.xml" override="TRUE"/>
+      <property name="depend.report.summary.xml.file" value="depend-summary-custom.xml" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="depend" description="Run software analyzer and metric tool for PHP Code for all code">
+    <phingcall target="depend-process">
+      <property name="depend.fileset" value="src.php" override="TRUE"/>
+      <property name="depend.report.jdepend.xml.file" value="depend.xml" override="TRUE"/>
+      <property name="depend.report.jdepend.chart.file" value="depend-chart.svg" override="TRUE"/>
+      <property name="depend.report.overview.pyramid.file" value="depend-pyramid.svg" override="TRUE"/>
+      <property name="depend.report.phpunit.xml.file" value="depend-phpunit.xml" override="TRUE"/>
+      <property name="depend.report.summary.xml.file" value="depend-summary.xml" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="depend-process" description="Run software analyzer and metric tool for PHP Code" depends="setup-filesets">
+    <mkdir dir="${struct.report.depend}"/>
+    <phpdepend allowedFileExtensions="${project.depend.extensions}"
+               supportBadDocumentation="${project.depend.bad.documentation}"
+               withoutAnnotations="${project.depend.skip.annotations}">
+      <fileset refid="${depend.fileset}"/>
+      <logger type="jdepend-xml" outfile="${struct.report.depend}/${depend.report.jdepend.xml.file}"/>
+      <logger type="jdepend-chart" outfile="${struct.report.depend}/${depend.report.jdepend.chart.file}"/>
+      <logger type="overview-pyramid" outfile="${struct.report.depend}/${depend.report.overview.pyramid.file}"/>
+      <logger type="phpunit-xml" outfile="${struct.report.depend}/${depend.report.phpunit.xml.file}"/>
+      <logger type="summary-xml" outfile="${struct.report.depend}/${depend.report.summary.xml.file}"/>
+      <analyzer type="coderank-mode" value="method"/>
+    </phpdepend>
+  </target>
+</project>

@@ -1,0 +1,117 @@
+diff --git a/includes/features.user.inc b/includes/features.user.inc
+index 0b13514..fc004e2 100644
+--- a/includes/features.user.inc
++++ b/includes/features.user.inc
+@@ -64,12 +64,12 @@ function user_permission_features_export_options() {
+ /**
+  * Implements hook_features_export_render().
+  */
+-function user_permission_features_export_render($module, $data) {  
++function user_permission_features_export_render($module, $data) {
+   $perm_modules = &drupal_static(__FUNCTION__ . '_perm_modules');
+   if (!isset($perm_modules)) {
+     $perm_modules = user_permission_get_modules();
+   }
+-  
++
+   $code = array();
+   $code[] = '  $permissions = array();';
+   $code[] = '';
+@@ -128,7 +128,7 @@ function user_permission_features_rebuild($module) {
+       $perm = $permission['name'];
+       foreach ($roles as $role) {
+         if (in_array($role, $permission['roles'])) {
+-          $permissions_by_role[$role][$perm] = TRUE;
++          $permissions_by_role[$role][$perm] = $permission;
+         }
+         else {
+           $permissions_by_role[$role][$perm] = FALSE;
+@@ -138,13 +138,87 @@ function user_permission_features_rebuild($module) {
+     // Write the updated permissions.
+     foreach ($roles as $rid => $role) {
+       if (isset($permissions_by_role[$role])) {
+-        user_role_change_permissions($rid, $permissions_by_role[$role]);
++        user_features_role_change_permissions($rid, $permissions_by_role[$role]);
+       }
+     }
+   }
+ }
+ 
+ /**
++ * Change permissions for a user role.
++ *
++ * This function may be used to grant and revoke multiple permissions at once.
++ * For example, when a form exposes checkboxes to configure permissions for a
++ * role, the form submit handler may directly pass the submitted values for the
++ * checkboxes form element to this function.
++ *
++ * @param $rid
++ *   The ID of a user role to alter.
++ * @param $permissions
++ *   An associative array, where the key holds the permission name and the value
++ *   determines whether to grant or revoke that permission. Any value that
++ *   evaluates to TRUE will cause the permission to be granted. Any value that
++ *   evaluates to FALSE will cause the permission to be revoked.
++ * @code
++ *     array(
++ *       'administer nodes' => 0,                // Revoke 'administer nodes'
++ *       'administer blocks' => FALSE,           // Revoke 'administer blocks'
++ *       'access user profiles' => 1,            // Grant 'access user profiles'
++ *       'access content' => TRUE,               // Grant 'access content'
++ *       'access comments' => 'access comments', // Grant 'access comments'
++ *     )
++ * @endcode
++ *   Existing permissions are not changed, unless specified in $permissions.
++ *
++ * @see user_role_grant_permissions()
++ * @see user_role_revoke_permissions()
++ */
++function user_features_role_change_permissions($rid, $permissions) {
++  // Grant new permissions for the role.
++  $grant = array_filter($permissions);
++  if (!empty($grant)) {
++    user_features_role_grant_permissions($rid, $grant);
++  }
++  // Revoke permissions for the role.
++  $revoke = array_diff_assoc($permissions, $grant);
++  if (!empty($revoke)) {
++    user_role_revoke_permissions($rid, array_keys($revoke));
++  }
++}
++
++/**
++ * Grant permissions to a user role.
++ *
++ * @param $rid
++ *   The ID of a user role to alter.
++ * @param $permissions
++ *   A list of permission names to grant.
++ *
++ * @see user_role_change_permissions()
++ * @see user_role_revoke_permissions()
++ */
++function user_features_role_grant_permissions($rid, array $permissions = array()) {
++  $modules = user_permission_get_modules();
++  // Grant new permissions for the role.
++  foreach ($permissions as $name => $perm) {
++    db_merge('role_permission')
++      ->key(array(
++      'rid'        => $rid,
++      'permission' => $name,
++    ))
++    ->fields(array(
++      'module' => isset($perm['module']) && !empty($perm['module']) ? $perm['module'] : $modules[$name],
++    ))
++    ->execute();
++  }
++
++  // Clear the user access cache.
++  drupal_static_reset('user_access');
++  drupal_static_reset('user_role_permissions');
++}
++
++
++/**
+  * Implements hook_features_export().
+  */
+ function user_role_features_export($data, &$export, $module_name = '') {

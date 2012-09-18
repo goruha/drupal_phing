@@ -1,0 +1,35 @@
+diff --git a/entityreference.module b/entityreference.module
+index cfc67bc..270fa08 100755
+--- a/entityreference.module
++++ b/entityreference.module
+@@ -630,7 +630,7 @@ function entityreference_field_widget_settings_form($field, $instance) {
+  * Implements hook_options_list().
+  */
+ function entityreference_options_list($field, $instance = NULL, $entity_type = NULL, $entity = NULL) {
+-  return entityreference_get_selection_handler($field, $instance, $entity_type, $entity)->getReferencableEntities();
++  return entityreference_get_selection_handler($field, $instance, $entity_type, $entity)->getReferencableEntities(NULL, 'CONTAINS', 0, FALSE);
+ }
+ 
+ /**
+diff --git a/plugins/selection/EntityReference_SelectionHandler_Generic.class.php b/plugins/selection/EntityReference_SelectionHandler_Generic.class.php
+index 7db4045..515db1d 100755
+--- a/plugins/selection/EntityReference_SelectionHandler_Generic.class.php
++++ b/plugins/selection/EntityReference_SelectionHandler_Generic.class.php
+@@ -130,7 +130,7 @@ class EntityReference_SelectionHandler_Generic implements EntityReference_Select
+   /**
+    * Implements EntityReferenceHandler::getReferencableEntities().
+    */
+-  public function getReferencableEntities($match = NULL, $match_operator = 'CONTAINS', $limit = 0) {
++  public function getReferencableEntities($match = NULL, $match_operator = 'CONTAINS', $limit = 0, $sanitize = TRUE) {
+     $options = array();
+     $entity_type = $this->field['settings']['target_type'];
+ 
+@@ -144,7 +144,7 @@ class EntityReference_SelectionHandler_Generic implements EntityReference_Select
+     if (!empty($results[$entity_type])) {
+       $entities = entity_load($entity_type, array_keys($results[$entity_type]));
+       foreach ($entities as $entity_id => $entity) {
+-        $options[$entity_id] = check_plain($this->getLabel($entity));
++        $options[$entity_id] = $sanitize ? check_plain($this->getLabel($entity)) : $this->getLabel($entity);
+       }
+     }
+ 

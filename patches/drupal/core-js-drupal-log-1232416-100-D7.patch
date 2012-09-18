@@ -1,0 +1,172 @@
+diff --git a/misc/ajax.js b/misc/ajax.js
+index 900ca1d..2ed22d3 100644
+--- a/misc/ajax.js
++++ b/misc/ajax.js
+@@ -74,6 +74,55 @@ Drupal.behaviors.AJAX = {
+ };
+ 
+ /**
++ * Build an error message from an Ajax response.
++ */
++Drupal.ajaxError = function (xmlhttp, uri) {
++  console.error(Drupal.t("An AJAX HTTP error occurred."), uri, xmlhttp);
++
++  // Return an object we can print as a string This avoid processing the several
++  // try/catch when there is no need to.
++  return {
++    uri: uri,
++    xmlhttp: xmlhttp,
++    toString: function () {
++      var statusCode, statusText, pathText, responseText, readyStateText, message;
++      if (xmlhttp.status) {
++        statusCode = "\n" + Drupal.t("An AJAX HTTP error occurred.") + "\n" + Drupal.t("HTTP Result Code: !status", {'!status': xmlhttp.status});
++      }
++      else {
++        statusCode = "\n" + Drupal.t("An AJAX HTTP request terminated abnormally.");
++      }
++      statusCode += "\n" + Drupal.t("Debugging information follows.");
++      pathText = "\n" + Drupal.t("Path: !uri", {'!uri': uri} );
++      statusText = '';
++      // In some cases, when statusCode == 0, xmlhttp.statusText may not be defined.
++      // Unfortunately, testing for it with typeof, etc, doesn't seem to catch that
++      // and the test causes an exception. So we need to catch the exception here.
++      try {
++        statusText = "\n" + Drupal.t("StatusText: !statusText", {'!statusText': $.trim(xmlhttp.statusText)});
++      }
++      catch (e) {}
++
++      responseText = '';
++      // Again, we don't have a way to know for sure whether accessing
++      // xmlhttp.responseText is going to throw an exception. So we'll catch it.
++      try {
++        responseText = "\n" + Drupal.t("ResponseText: !responseText", {'!responseText': $.trim(xmlhttp.responseText) } );
++      } catch (e) {}
++
++      // Make the responseText more readable by stripping HTML tags and newlines.
++      responseText = responseText.replace(/<("[^"]*"|'[^']*'|[^'">])*>/gi,"");
++      responseText = responseText.replace(/[\n]+\s+/g,"\n");
++
++      // We don't need readyState except for status == 0.
++      readyStateText = xmlhttp.status == 0 ? ("\n" + Drupal.t("ReadyState: !readyState", {'!readyState': xmlhttp.readyState})) : "";
++
++      return statusCode + pathText + statusText + responseText + readyStateText;
++    }
++  };
++};
++
++/**
+  * Ajax object.
+  *
+  * All Ajax objects on a page are accessible through the global Drupal.ajax
+@@ -259,7 +308,7 @@ Drupal.ajax.prototype.eventResponse = function (element, event) {
+     // Unset the ajax.ajaxing flag here because it won't be unset during
+     // the complete response.
+     ajax.ajaxing = false;
+-    alert("An error occurred while attempting to process " + ajax.options.url + ": " + e.message);
++    console.error("An error occurred while attempting to process " + ajax.options.url, e.message, ajax, e);
+   }
+ 
+   // For radio/checkbox, allow the default event. On IE, this means letting
+@@ -448,7 +497,7 @@ Drupal.ajax.prototype.getEffect = function (response) {
+  * Handler for the form redirection error.
+  */
+ Drupal.ajax.prototype.error = function (response, uri) {
+-  alert(Drupal.ajaxError(response, uri));
++  Drupal.ajaxError(response, uri);
+   // Remove the progress element.
+   if (this.progress.element) {
+     $(this.progress.element).remove();
+diff --git a/misc/autocomplete.js b/misc/autocomplete.js
+index 267d4b7..fdafda3 100644
+--- a/misc/autocomplete.js
++++ b/misc/autocomplete.js
+@@ -304,7 +304,7 @@ Drupal.ACDB.prototype.search = function (searchString) {
+         }
+       },
+       error: function (xmlhttp) {
+-        alert(Drupal.ajaxError(xmlhttp, db.uri));
++        Drupal.ajaxError(xmlhttp, db.uri);
+       }
+     });
+   }, this.delay);
+diff --git a/misc/drupal.js b/misc/drupal.js
+index 83b0884..a5bbc00 100644
+--- a/misc/drupal.js
++++ b/misc/drupal.js
+@@ -109,6 +109,15 @@ Drupal.detachBehaviors = function (context, settings, trigger) {
+   });
+ };
+ 
++// Create dummy functions if browser console is not available.
++if (typeof console !== 'object') {
++  console = {
++    log: function () {},
++    warn: function () {},
++    error: function () {}
++  };
++}
++
+ /**
+  * Encode special characters in a plain-text string for display as HTML.
+  *
+@@ -326,46 +335,6 @@ Drupal.getSelection = function (element) {
+   return { 'start': element.selectionStart, 'end': element.selectionEnd };
+ };
+ 
+-/**
+- * Build an error message from an Ajax response.
+- */
+-Drupal.ajaxError = function (xmlhttp, uri) {
+-  var statusCode, statusText, pathText, responseText, readyStateText, message;
+-  if (xmlhttp.status) {
+-    statusCode = "\n" + Drupal.t("An AJAX HTTP error occurred.") +  "\n" + Drupal.t("HTTP Result Code: !status", {'!status': xmlhttp.status});
+-  }
+-  else {
+-    statusCode = "\n" + Drupal.t("An AJAX HTTP request terminated abnormally.");
+-  }
+-  statusCode += "\n" + Drupal.t("Debugging information follows.");
+-  pathText = "\n" + Drupal.t("Path: !uri", {'!uri': uri} );
+-  statusText = '';
+-  // In some cases, when statusCode == 0, xmlhttp.statusText may not be defined.
+-  // Unfortunately, testing for it with typeof, etc, doesn't seem to catch that
+-  // and the test causes an exception. So we need to catch the exception here.
+-  try {
+-    statusText = "\n" + Drupal.t("StatusText: !statusText", {'!statusText': $.trim(xmlhttp.statusText)});
+-  }
+-  catch (e) {}
+-
+-  responseText = '';
+-  // Again, we don't have a way to know for sure whether accessing
+-  // xmlhttp.responseText is going to throw an exception. So we'll catch it.
+-  try {
+-    responseText = "\n" + Drupal.t("ResponseText: !responseText", {'!responseText': $.trim(xmlhttp.responseText) } );
+-  } catch (e) {}
+-
+-  // Make the responseText more readable by stripping HTML tags and newlines.
+-  responseText = responseText.replace(/<("[^"]*"|'[^']*'|[^'">])*>/gi,"");
+-  responseText = responseText.replace(/[\n]+\s+/g,"\n");
+-
+-  // We don't need readyState except for status == 0.
+-  readyStateText = xmlhttp.status == 0 ? ("\n" + Drupal.t("ReadyState: !readyState", {'!readyState': xmlhttp.readyState})) : "";
+-
+-  message = statusCode + pathText + statusText + responseText + readyStateText;
+-  return message;
+-};
+-
+ // Class indicating that JS is enabled; used for styling purpose.
+ $('html').addClass('js');
+ 
+diff --git a/misc/progress.js b/misc/progress.js
+index 822666a..2daca6c 100644
+--- a/misc/progress.js
++++ b/misc/progress.js
+@@ -85,7 +85,8 @@ Drupal.progressBar.prototype.sendPing = function () {
+         pb.timer = setTimeout(function () { pb.sendPing(); }, pb.delay);
+       },
+       error: function (xmlhttp) {
+-        pb.displayError(Drupal.ajaxError(xmlhttp, pb.uri));
++        var error = Drupal.ajaxError(xmlhttp, pb.uri);
++        pb.displayError(error.toString());
+       }
+     });
+   }

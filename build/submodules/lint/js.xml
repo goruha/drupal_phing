@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="js" basedir="." default="lint">
+
+  <property name="project.jsl.path" value="${struct.tools}/${project.jsl.dir}" />
+
+  <if>
+    <not>
+      <available file="${project.jsl.path}/${project.jsl.exec}" value="Yes"/>
+    </not>
+    <then>
+      <mkdir dir="${project.jsl.path}"/>
+      <svncheckout
+        repositoryurl="${project.jsl.svn.rep}"
+        todir="${project.jsl.path}"/>
+      <exec command="python setup.py build" dir="${project.jsl.path}" />
+    </then>
+  </if>
+
+  <target name="lint"
+          description="Check js files for syntax errors using JSLint">
+    <phingcall target="js.lint-process">
+      <property name="lint.js.report.filename" value="jslint.xml" override="TRUE"/>
+      <property name="lint.js.fileset.id" value="src.js" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="lint-custom"
+          description="Check js files for syntax errors using JSLint">
+    <phingcall target="js.lint-process">
+      <property name="lint.js.report.filename" value="jslint-custom.xml" override="TRUE"/>
+      <property name="lint.js.fileset.id" value="src.js.custom" override="TRUE"/>
+    </phingcall>
+  </target>
+
+  <target name="lint-process"
+          description="Check JS files for syntax errors using JSLint" depends="setup-filesets">
+    <mkdir dir="${struct.report.jslint}"/>
+    <jsllint haltonfailure="true" tofile="${struct.report.jslint}/${lint.js.report.filename}" executable="${project.jsl.path}/${project.jsl.exec}">
+      <fileset refid="${lint.js.fileset.id}"/>
+    </jsllint>
+  </target>
+  
+</project>
+

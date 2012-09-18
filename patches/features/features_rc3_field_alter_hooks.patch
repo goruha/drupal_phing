@@ -1,0 +1,28 @@
+diff --git a/includes/features.field.inc b/includes/features.field.inc
+index 1936826..6057f7f 100755
+--- a/includes/features.field.inc
++++ b/includes/features.field.inc
+@@ -103,6 +103,11 @@ function field_features_export_render($module, $data, $export = NULL) {
+         unset($field['field_config']['storage']['details']);
+       }
+ 
++      // Modify field data in other modules.
++      // The hook_alter signature is:
++      // hook_field_features_export_render_alter(&field);
++      drupal_alter('field_features_export_render', $field);
++
+       _field_features_export_sort($field);
+       $field_export = features_var_export($field, '  ');
+       $field_identifier = features_var_export($identifier);
+@@ -167,6 +172,11 @@ function field_features_rebuild($module) {
+     $existing_instances = field_info_instances();
+ 
+     foreach ($fields as $field) {
++      // Modify field data in other modules.
++      // The hook_alter signature is:
++      // hook_field_features_rebuild_alter(&field);
++      drupal_alter('field_features_rebuild', $field);
++
+       // Create or update field.
+       $field_config = $field['field_config'];
+       if (isset($existing_fields[$field_config['field_name']])) {

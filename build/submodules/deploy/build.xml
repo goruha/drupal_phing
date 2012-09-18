@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="deploy" basedir=".">
+  <php function="dirname" returnProperty="deploy.basedir">
+    <param value="${phing.file.deploy}"/>
+  </php>
+  <import file="${deploy.basedir}/package.xml"/>
+
+  <target name="install.create">
+    <property file="${build}/properties/${profile}.prop" override="true"/>
+    <copy file="${struct.build.templates}/${project.deploy.install.template}"
+          tofile="${struct.code}/${project.deploy.install.name}" overwrite="true">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+    </copy>
+    <chmod file="${struct.code}/${project.deploy.install.name}" mode="0755"/>
+  </target>
+
+</project>

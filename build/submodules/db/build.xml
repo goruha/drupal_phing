@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="db" basedir=".">
+    <target name="init" description="Create DB from dump">
+        <echo>Project sql dump import started</echo>
+        <phingcall target="db.drop"/>
+        <drush command="sql-query" bin="${project.drush.bin}">
+            <option name="input-file">'${struct.root}${project.sql.dir}/${project.sql.file}'</option>
+            <option name="strict">'0'</option>
+            <option name="root">'${struct.code}'</option>
+        </drush>
+        <echo>Project sql dump import finished</echo>
+    </target>
+
+    <target name="drop" depends="settings.create, db.create">
+        <drush command="sql-drop" bin="${project.drush.bin}" assume="yes">
+            <option name="root">'${struct.code}'</option>
+        </drush>
+        <echo>Project db droped</echo>
+    </target>
+
+    <target name="create">
+        <pdo url="${env.db.driver}:host=${env.db.host}"
+             userId="${env.db.user.sudo}" password="${env.db.user.sudo.password}"
+             onerror="abort">
+            CREATE DATABASE IF NOT EXISTS ${env.db.name};
+        </pdo>
+        <echo>Project db created</echo>
+    </target>
+
+    <target name="export">
+      <drush command="sql-dump" bin="${project.drush.bin}" assume="yes">
+        <option name="root">'${struct.code}'</option>
+        <option name="gzip"/>
+        <option name="result-file">'${project.db.export.path}'</option>
+      </drush>
+      <echo>Project db dumped</echo>
+    </target>
+</project>
