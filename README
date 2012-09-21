@@ -1,6 +1,7 @@
-#Drupal phing#
+
+# Drupal phing #
 Drupal phing is environment for drupal developers
 allow to take control over the code and database.
 It makes possible real CI and CD for Drupal.
 
-##Install requirements
+## Install requirements ##
