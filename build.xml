@@ -84,6 +84,8 @@
   <import file="${struct.build.submodules}/selenium/build.xml"/>
   <import file="${struct.build.submodules}/solr/build.xml"/>
   <import file="${struct.build.submodules}/db/build.xml"/>
+  <import file="${struct.build.submodules}/memcache/build.xml"/>
+  <import file="${struct.build.submodules}/cdn/build.xml"/>
 
 
   <target name="install" depends="clear" description="Install site">
