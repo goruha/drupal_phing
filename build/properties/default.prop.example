@@ -29,3 +29,11 @@ env.environment=development
 env.solr.start=0
 
 env.solr.server=default
+
+env.memcache = true
+env.memcache.tpl = default
+
+env.cdn = true
+env.cdn.tpl = default
+
+env.log_dir=../resources/logs
