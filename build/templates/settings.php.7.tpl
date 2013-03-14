@@ -319,7 +319,8 @@ ini_set('session.cookie_lifetime', 2000000);
  * between your various domains. Make sure to always start the $cookie_domain
  * with a leading dot, as per RFC 2109.
  */
-# $cookie_domain = '.example.com';
+//!!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!!!!!! Please set this variable equal to host name for prod server !!!!!!!!!!!!!!!!!!!!!
+$cookie_domain = '${env.host.name}';
 
 /**
  * Variable overrides:
@@ -343,6 +344,8 @@ ini_set('session.cookie_lifetime', 2000000);
 # $conf['anonymous'] = 'Visitor';
 $conf['l10n_update_download_store']='${project.drupal.translations.path}';
 $conf['solr_server_config']='${env.solr.server}';
+//!!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!!!!!! Please be sure dir exist and writable for prod server !!!!!!!!!!!!!!!!!!!!!
+$conf['klogger_log_dir'] = '${env.log_dir}';
 
 /**
  * A custom theme can be set for the offline page. This applies when the site
@@ -520,3 +523,6 @@ $conf['404_fast_html'] = '<html xmlns="http://www.w3.org/1999/xhtml"><head><titl
  * Remove the leading hash signs to disable.
  */
 # $conf['allow_authorize_operations'] = FALSE;
+${env.memcache.config}
+
+${env.cdn.config}
