@@ -1,0 +1,91 @@
+<?php
+/**
+ * @file
+ * Provide api for theme mockup
+ */
+
+/**
+ * Time of the current request in seconds elapsed since the Unix Epoch.
+ *
+ * This differs from $_SERVER['REQUEST_TIME'], which is stored as a float
+ * since PHP 5.4.0. Float timestamps confuse most PHP functions
+ * (including date_create()).
+ *
+ * @see http://php.net/manual/reserved.variables.server.php
+ * @see http://php.net/manual/function.time.php
+ */
+define('REQUEST_HASH', 'RID' . rand(0, 1000));
+
+/**
+ *
+ * @param $type
+ * @param $message
+ * @param array $variables
+ * @param int $severity
+ * @param null $link
+ */
+function log_log($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL) {
+  $message = ' | ' . REQUEST_HASH . " | $message";
+  $message = log_format_string($message, $variables);
+  watchdog($type, $message, $variables, $severity, $link);
+}
+
+/**
+ * Replaces placeholders with sanitized values in a string.
+ *
+ * @param $string
+ *   A string containing placeholders.
+ * @param $args
+ *   An associative array of replacements to make. Occurrences in $string of
+ *   any key in $args are replaced with the corresponding value, after
+ *   sanitization. The sanitization function depends on the first character of
+ *   the key:
+ *   - !variable: Inserted as is. Use this for text that has already been
+ *     sanitized.
+ *   - @variable: Escaped to HTML using check_plain(). Use this for anything
+ *     displayed on a page on the site.
+ *   - %variable: Escaped as a placeholder for user-submitted content using
+ *     drupal_placeholder(), which shows up as <em>emphasized</em> text.
+ *
+ * @see t()
+ * @ingroup sanitization
+ */
+function log_format_string($string, array &$args = array()) {
+  $args_to_unset = array();
+  // Transform arguments before inserting them.
+  foreach ($args as $key => &$value) {
+    try {
+      switch ($key[0]) {
+        case '*':
+          // Escaped only.
+          $value = serialize($value);
+          $args_to_unset[] = $key;
+          break;
+      }
+    } catch (Exception $e) {
+      watchdog('log', "Exception @e", array('@e' => $e->getMessage()), WATCHDOG_ERROR);
+      $value = '';
+    }
+  }
+  $result = strtr($string, $args);
+  return $result;
+}
+
+function log_file($source, $name) {
+  $log_directory = drupal_realpath(variable_get('klogger_log_dir', './'));
+  $file_path = $log_directory . "/$name";
+  if (!file_exists($file_path)) {
+    copy($source, $file_path);
+  }
+}
+
+function log_content_file($content) {
+  $content = serialize($content);
+  $name = md5($content);
+  $log_directory = drupal_realpath(variable_get('klogger_log_dir', './'));
+  $file_path = $log_directory . "/$name.dump";
+  if (!file_exists($file_path)) {
+    file_put_contents($file_path, $content);
+  }
+  return $name;
+}

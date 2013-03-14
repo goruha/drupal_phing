@@ -1,0 +1,107 @@
+<?php
+/**
+ * @file
+ * Implement klogger for watchdog
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function klogger_form_system_logging_settings_alter(&$form, &$form_state) {
+  _klogger_init();
+  $form['klogger_log_dir'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Klogger dir path'),
+    '#default_value' => variable_get('klogger_log_dir', './'),
+    '#description'   => t('Relative path will be related to drupal root dir'),
+  );
+  $form['klogger_severity'] = array(
+    '#type'          => 'select',
+    '#title'         => t('Klogger severity'),
+    '#default_value' => variable_get('klogger_severity', KLogger::DEBUG),
+    '#options'       => array(
+      KLogger::EMERG => t('Emergency'),
+      KLogger::ALERT => t('Alert'),
+      KLogger::CRIT => t('Critical'),
+      KLogger::ERR => t('Error'),
+      KLogger::WARN => t('Warning'),
+      KLogger::NOTICE => t('Notice'),
+      KLogger::INFO => t('Informational'),
+      KLogger::DEBUG => t('Debug'),
+      KLogger::OFF => t('OFF'),
+    ),
+    '#description'   => t('Depending on the system configuration, Syslog and other logging tools use this code to identify or filter messages from within the entire system log.'),
+  );
+}
+
+
+
+/**
+ * Implements hook_watchdog().
+ */
+function klogger_watchdog(array $log_entry) {
+  global $base_url;
+
+  _klogger_init();
+
+  $log_directory = drupal_realpath(variable_get('klogger_log_dir', './'));
+  $severity = variable_get('klogger_severity', KLogger::DEBUG);
+  $log   = KLogger::instance($log_directory, $severity);
+
+  $message = strtr(variable_get('syslog_format', '!base_url|!timestamp|!type|!ip|!request_uri|!referer|!uid|!link|!message'), array(
+    '!base_url'    => $base_url,
+    '!timestamp'   => $log_entry['timestamp'],
+    '!type'        => $log_entry['type'],
+    '!ip'          => $log_entry['ip'],
+    '!request_uri' => $log_entry['request_uri'],
+    '!referer'     => $log_entry['referer'],
+    '!uid'         => $log_entry['uid'],
+    '!link'        => strip_tags($log_entry['link']),
+    '!message'     => strip_tags(!isset($log_entry['variables']) ? $log_entry['message'] : strtr($log_entry['message'], $log_entry['variables'])),
+  ));
+
+
+  switch ($log_entry['severity']) {
+    case WATCHDOG_EMERGENCY:
+      $log->logEmerg($message);
+      break;
+
+    case WATCHDOG_ALERT:
+      $log->logAlert($message);
+      break;
+
+    case WATCHDOG_CRITICAL:
+      $log->logCrit($message);
+      break;
+
+    case WATCHDOG_ERROR:
+      $log->logError($message);
+      break;
+
+    case WATCHDOG_WARNING:
+      $log->logWarn($message);
+      break;
+
+    case WATCHDOG_NOTICE:
+      $log->logNotice($message);
+      break;
+
+    case WATCHDOG_INFO:
+      $log->logInfo($message);
+      break;
+
+    case WATCHDOG_DEBUG:
+      $log->logDebug($message);
+      break;
+  }
+}
+
+function _klogger_init() {
+  $log_init = & drupal_static(__FUNCTION__, FALSE);
+
+  if (!$log_init) {
+    $path = libraries_get_path('klogger');
+    include_once "$path/src/KLogger.php";
+    return $log_init;
+  }
+}

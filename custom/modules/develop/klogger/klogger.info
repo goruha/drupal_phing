@@ -1,0 +1,9 @@
+; $Id$
+name = KLogger
+description = Integrate Klogger for watchdog
+core = 7.x
+package = "Develop"
+project = "Develop"
+version = "7.x-0.1-dev"
+
+dependencies[] = libraries

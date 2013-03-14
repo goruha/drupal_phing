@@ -1,0 +1,7 @@
+; $Id$
+name = Logger
+description = Provide log framework for buissness logic
+core = 7.x
+package = "Develop"
+project = "Develop"
+version = "7.x-0.1-dev"
