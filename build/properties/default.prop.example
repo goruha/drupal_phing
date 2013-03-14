@@ -2,7 +2,7 @@
 
 
 env.db.driver=mysql
-env.db.host=localhost
+env.db.host=%DB HOST%
 env.db.name=%DB NAME%
 env.db.user=%DB USER%
 env.db.password=%DB PASSWORD%
@@ -12,7 +12,7 @@ env.db.user.sudo.password=%DB PASSWORD%
 env.server=apache2
 
 env.host.file=/etc/hosts
-env.host.name=%DB PASSWORD%
+env.host.name=%HOST NAME%
 env.host.ip=127.0.1.1
 env.host.vhost_dir.avaliable=/etc/apache2/sites-available
 env.host.vhost_dir.enabled=/etc/apache2/sites-enabled
