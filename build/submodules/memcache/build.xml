@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="memcache" basedir=".">
+    <if>
+        <equals arg1="${env.memcache}" arg2="true" casesensitive="false" trim="true"/>
+        <then>
+            <loadfile property="env.memcache.config" file="${struct.build.templates}/memcache/${env.memcache.tpl}.tpl"/>
+        </then>
+        <else>
+            <property name="env.memcache.config" value=""/>
+        </else>
+    </if>
+</project>
