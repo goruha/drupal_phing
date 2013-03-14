@@ -32,6 +32,7 @@ env.solr.server=default
 
 env.memcache = true
 env.memcache.tpl = default
+env.memcache.prefix = default
 
 env.cdn = true
 env.cdn.tpl = default
