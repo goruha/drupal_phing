@@ -29,7 +29,6 @@ function environments_custom_environment_switch($target_env, $current_env) {
     'hacked',
     'hacked_make',
     'devel',
-    'devel_generate',
     'devel_node_access',
     'simpletest',
     'simpletest_clone',
@@ -42,7 +41,14 @@ function environments_custom_environment_switch($target_env, $current_env) {
 
   $devel_modules = environments_custom_module_exist(array(
     'stage_file_proxy',
+    'dblog',
+    'devel_generate',
   ));
+
+  $production_modules = environments_custom_module_exist(array(
+    'klogger',
+  ));
+
 
   switch ($target_env) {
     case ENVIRONMENT_PRODUCTION:
@@ -58,8 +64,14 @@ function environments_custom_environment_switch($target_env, $current_env) {
       drupal_set_message(t('Disabled developement modules: <br />@modules', array(
         '@modules' => implode(', ', $devel_modules),
       )));
+      module_enable($production_modules);
+      drupal_set_message(t('Enable production modules: <br />@modules', array(
+        '@modules' => implode(', ', $production_modules),
+      )));
       variable_set('error_level', ERROR_REPORTING_HIDE);
       variable_set('maillog_send', 1);
+      variable_set('preprocess_css', 1);
+      variable_set('preprocess_js', 1);
       break;
 
     case ENVIRONMENT_DEVELOPMENT:
@@ -75,8 +87,15 @@ function environments_custom_environment_switch($target_env, $current_env) {
       drupal_set_message(t('Enabled development modules: <br />@modules', array(
         '@modules' => implode(', ', $devel_modules),
       )));
+      module_enable($production_modules);
+      drupal_set_message(t('Enable production modules: <br />@modules', array(
+        '@modules' => implode(', ', $production_modules),
+      )));
       variable_set('error_level', ERROR_REPORTING_DISPLAY_ALL);
       variable_set('maillog_send', 0);
+      variable_set('preprocess_css', 0);
+      variable_set('preprocess_js', 0);
+
       break;
 
     case ENVIRONMENT_DEBUG:
@@ -92,8 +111,14 @@ function environments_custom_environment_switch($target_env, $current_env) {
       drupal_set_message(t('Disabled developement modules: <br />@modules', array(
         '@modules' => implode(', ', $devel_modules),
       )));
+      module_enable($production_modules);
+      drupal_set_message(t('Enable production modules: <br />@modules', array(
+        '@modules' => implode(', ', $production_modules),
+      )));
       variable_set('error_level', ERROR_REPORTING_DISPLAY_SOME);
       variable_set('maillog_send', 1);
+      variable_set('preprocess_css', 0);
+      variable_set('preprocess_js', 0);
       break;
 
     case ENVIRONMENT_STAGING:
@@ -109,8 +134,14 @@ function environments_custom_environment_switch($target_env, $current_env) {
       drupal_set_message(t('Enabled development modules: <br />@modules', array(
         '@modules' => implode(', ', $devel_modules),
       )));
+      module_enable($production_modules);
+      drupal_set_message(t('Enable production modules: <br />@modules', array(
+        '@modules' => implode(', ', $production_modules),
+      )));
       variable_set('error_level', ERROR_REPORTING_HIDE);
       variable_set('maillog_send', 0);
+      variable_set('preprocess_css', 1);
+      variable_set('preprocess_js', 1);
       break;
   }
   return;
