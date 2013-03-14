@@ -132,7 +132,7 @@ function uuid_term_features_export_render($module = 'foo', $data) {
       'bundle' => 'taxonomy_term',
       'type' => $export->vocabulary,
     );
-    drupal_alter('uuid_features_export_render', $export, $term, $module, $data);
+    drupal_alter('uuid_features_export_render', $export, $term, $data);
     $code[] = '  $terms[] = ' . features_var_export($export, '  ') . ';';
   }
 
@@ -181,7 +181,7 @@ function uuid_term_features_rebuild($module) {
         $data = array(
           'module' => $module,
           'bundle' => 'taxonomy_term',
-          'type' => $term->vocabulary_machine_name,
+          'type' => $term->vocabulary,
         );
         drupal_alter('uuid_features_rebuild', $term, $data);
         $ret = taxonomy_term_save($term);
