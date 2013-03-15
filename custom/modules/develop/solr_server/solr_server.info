@@ -1,9 +1,0 @@
-; $Id$
-name = Solr server
-description = Change solr server config
-core = 7.x
-features[search_api_server][] = solr
-dependencies[] = search_api_solr
-package = "Develop"
-project = "Solr Sever"
-

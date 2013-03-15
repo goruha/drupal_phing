@@ -30,11 +30,11 @@ env.solr.start=0
 
 env.solr.server=default
 
-env.memcache = true
+env.memcache = 0
 env.memcache.tpl = default
 env.memcache.prefix = default
 
-env.cdn = true
+env.cdn = 0
 env.cdn.tpl = default
 
 env.log_dir=../resources/logs

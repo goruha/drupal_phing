@@ -1,9 +1,0 @@
-; $Id$
-name = Theme mockup
-description = Provide api for html mockups using
-core = 7.x
-package = "Develop"
-project = "Develop"
-version = "6.x-0.1-dev"
-
-files[] = mockup_theme.test

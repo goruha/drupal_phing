@@ -1,8 +1,0 @@
-; $Id$
-name = Environment test data
-description = Environmen test data manager
-core = 7.x
-package = "Develop"
-project = "Develop"
-dependencies[] = environment
-dependencies[] = environments_custom
