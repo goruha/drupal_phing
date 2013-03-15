@@ -6,11 +6,11 @@ core = 7.x
 ;--------------------
 
 projects[drupal][version] = 7.21
-projects[drupal][patch][] = "patches/drupal/locale_import_overwrite.patch"
-projects[drupal][patch][] = "patches/drupal/no_uri_warning.patch"
-projects[drupal][patch][] = "patches/drupal/user_list_views_override_break_user_create.patch"
+projects[drupal][patch][] = "local:///patches/drupal/locale_import_overwrite.patch"
+projects[drupal][patch][] = "local:///patches/drupal/no_uri_warning.patch"
+projects[drupal][patch][] = "local:///patches/drupal/user_list_views_override_break_user_create.patch"
 ;http://drupal.org/node/1232416
-projects[drupal][patch][] = "patches/drupal/core-js-drupal-log-1232416-100-D7.patch"
+projects[drupal][patch][] = "local:///patches/drupal/core-js-drupal-log-1232416-100-D7.patch"
 
 projects[solution_core][type] = "profile"
 projects[solution_core][download][type] = "git"
