@@ -73,6 +73,7 @@
       <option name="sites-subdir">'${drupal.site.subdir}'</option>
       <param>'${project.drupal.profile}'</param>
       <param>install_configure_form.locale='${project.drupal.locale}'</param>
+      <param>install_configure_form.update_status_module='0'</param>
     </drush>
     <phingcall target="settings.create"/>
     <phingcall target="solution.install"/>
