@@ -5,6 +5,7 @@ core = 7.x
 ; Build Core
 ;--------------------
 
+projects[drupal][version] = 7.21
 projects[drupal][patch][] = "patches/drupal/locale_import_overwrite.patch"
 projects[drupal][patch][] = "patches/drupal/no_uri_warning.patch"
 projects[drupal][patch][] = "patches/drupal/user_list_views_override_break_user_create.patch"
