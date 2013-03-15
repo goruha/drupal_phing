@@ -56,7 +56,7 @@ project.drush.task.git.rep=git://github.com/goruha/phingdrushtask.git
 project.drush.task.git.branch.name=7.x-1.x
 
 project.drush.git.rep=git://github.com/goruha/drush.git
-project.drush.git.branch.name=7.x-5.x-make-local-patches-840540
+project.drush.git.branch.name=8.x-6.x
 project.drush.user.id=1
 
 project.jsl.dir=jsllint
