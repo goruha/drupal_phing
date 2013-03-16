@@ -120,9 +120,9 @@
 
   <target name="clear" description="Clear dirs">
     <phingcall target="drupal.clear"/>
-    <delete dir="${struct.code}" includeemptydirs="true" failonerror="true"/>
-    <delete dir="${struct.tmp}" includeemptydirs="true" failonerror="true"/>
-    <delete dir="${struct.report}" includeemptydirs="true" failonerror="true"/>
+    <delete dir="${struct.code}" includeemptydirs="true" failonerror="true" quiet="true"/>
+    <delete dir="${struct.tmp}" includeemptydirs="true" failonerror="true"  quiet="true"/>
+    <delete dir="${struct.report}" includeemptydirs="true" failonerror="true" quiet="true"/>
     <echo>Cleaned directory</echo>
   </target>
 
