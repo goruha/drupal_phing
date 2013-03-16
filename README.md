@@ -1,41 +1,42 @@
-# Drupal phing #
+# Drupal phing
+
 Drupal phing is environment for drupal developers
 allow to take control over the code and database.
 It makes possible real CI and CD for Drupal.
 
-## System requirements ##
+# System requirements
 
 IMPORTANT: Tested only on Ubuntu linux.
 Please report about other OS cases.
 Windows have a lot of problems.
 
-## Install requirements ##
+# Install requirements
 
-$ pear config-set auto_discover 1
-$ pear channel-discover pear.phing.info
-$ pear install --alldeps phing/phing-beta
-$ pear install --alldeps "channel://pear.php.net/VersionControl_SVN-0.4.0"
-$ pear install --alldeps "channel://pear.php.net/VersionControl_GIT-0.4.4"
-$ pear install --alldeps PHP_CodeSniffer
-$ pear channel-discover pear.phpmd.org
-$ pear channel-discover pear.pdepend.org
-$ pear install --alldeps phpmd/PHP_PMD
-$ pear install pear.phpunit.de/phpcpd
-$ pear channel-discover pear.pdepend.org
-$ pear install pdepend/PHP_Depend-beta
+    $ pear config-set auto_discover 1
+    $ pear channel-discover pear.phing.info
+    $ pear install --alldeps phing/phing-beta
+    $ pear install --alldeps "channel://pear.php.net/VersionControl_SVN-0.4.0"    
+    $ pear install --alldeps "channel://pear.php.net/VersionControl_GIT-0.4.4"
+    $ pear install --alldeps PHP_CodeSniffer
+    $ pear channel-discover pear.phpmd.org
+    $ pear channel-discover pear.pdepend.org
+    $ pear install --alldeps phpmd/PHP_PMD
+    $ pear install pear.phpunit.de/phpcpd
+    $ pear channel-discover pear.pdepend.org
+    $ pear install pdepend/PHP_Depend-beta
 
 Best practice:
 
-$ ./depends.install.sh
+    $ ./depends.install.sh
 
 Subversion install from this site
 http://subversion.tigris.org/
 
-## Config local environment ##
+# Config local environment
 
 Copy default properties example to default.prop environment file
 
-$ cp build/properties/default.prop.example build/properties/default.prop
+    $ cp build/properties/default.prop.example build/properties/default.prop
 
 Best practice:
 
