@@ -40,41 +40,45 @@ Copy default properties example to default.prop environment file
 
 Best practice:
 
-$ cp build/properties/default.prop.example build/properties/{developer-name}.prop
-$ ln -s {dir path}/build/properties/{developer-name}.prop {dir path}/build/properties/default.prop
+    $ cp build/properties/default.prop.example build/properties/{developer-name}.prop
+    $ ln -s {dir path}/build/properties/{developer-name}.prop {dir path}/build/properties/default.prop
 
 ## Install drupal ##
 
-Just run install phing target to install drupal and host.install target to install host.
-$ phing host.install
-$ phing install
+Just run `install` phing target to install drupal and `host.install` target to install host.
+
+    $ phing host.install
+    $ phing install
 
 Open drupal page in browser with host you define in local enviroment properties.
 
-## Directory structure ##
+# Directory structure
+
 Static directories (Not created in auto mode, stored in git and not cleaned with any phing targets)
 
-- build // Store build system
--- properties // Store build system configurations
---- project.prop // Project specific configurations, are same for different developer environments
---- default.prop.example // Default example properties for developer specific environments
---- default.prop // Default properties for developer specific environments. User create with his own
--- tasks // Store subsystems for build.
--- templates // Store templates (settings.php, configs apache and nginx, shell script to install drupal on server)
-- capistrano // Store capistration scripts and configurations
-- custom // Store custom code
--- modules // Store custom modules
--- themes // Store custom themes
-- drake // Store drush migrate (drake) files. Mostly used to enable/disable modules. http://drupal.org/project/drush_migrate
-- patches // Store patches you need to apply for contrib modules.
-build.make // Store drupal make configurations. http://drupal.org/project/drush_make
-build.xml // Core of build system.
-depends.install.sh // Shell script to install pear dependences.
+    - build // Store build system
+    -- properties // Store build system configurations
+    --- project.prop // Project specific configurations, are same for different developer environments
+    --- default.prop.example // Default example properties for developer specific environments
+    --- default.prop // Default properties for developer specific environments. User create with his own
+    -- tasks // Store subsystems for build.
+    -- templates // Store templates (settings.php, configs apache and nginx, shell script to install drupal on server)
+    - capistrano // Store capistration scripts and configurations
+    - custom // Store custom code
+    -- modules // Store custom modules
+    -- themes // Store custom themes
+    - drake // Store drush migrate (drake) files. Mostly used to enable/disable modules. http://drupal.org/project/drush_migrate
+    - patches // Store patches you need to apply for contrib modules.
+    build.make // Store drupal make configurations. http://drupal.org/project/drush_make
+    build.xml // Core of build system.
+    depends.install.sh // Shell script to install pear dependences.
 
-Dynamic directories (Created in automode, store some temporary files, can be cleaned up with phing targets)
+Dynamic directories (created in automode, store some temporary files, can be cleaned up with phing targets)
 
-- www // Document root for builded drupal site. Cleaned with $ phing clear
-- tools // Store additional tools required with build system.
-- deploy // Store drupal code ready to deploy to server
+    - www // Document root for builded drupal site. Cleaned with $ phing clear
+    - tools // Store additional tools required with build system.
+    - deploy // Store drupal code ready to deploy to server
 
-## Phing targets ##
+# Phing targets
+
+TODO
