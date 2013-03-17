@@ -49,7 +49,7 @@ namespace :deploy do
 
   desc "VPN connect"
   task :vpnconnect do
-		run_locally "sudo vpnc {vpn name}" if defined?($vpn)
+    run_locally "sudo vpnc {vpn name}" if defined?($vpn)
   end
 
   desc "VPN disconnect"
@@ -124,8 +124,8 @@ namespace :deploy do
 
     transaction { drushinstall }
 
-		# fix Drupal-chmod
-		run "chmod ug+w #{release_path}/sites/default #{release_path}/sites/default/settings.php #{release_path}/sites/default/default.settings.php #{release_path}/sites/default/files"
+    # fix Drupal-chmod
+    run "chmod ug+w #{release_path}/sites/default #{release_path}/sites/default/settings.php #{release_path}/sites/default/default.settings.php #{release_path}/sites/default/files"
 
     system "rm -f code_update.tar.gz"
   end
