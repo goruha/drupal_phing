@@ -21,7 +21,7 @@
   <property file="${build}/properties/project.prop"/>
 
   <!-- SVN structure dependent settings -->
-  <resolvepath propertyName="struct.root" file="." />
+  <resolvepath propertyName="struct.root" file="."/>
 
   <property name="struct.build" value="${struct.root}/${build}"/>
   <property name="struct.build.submodules" value="${struct.build}/submodules"/>
@@ -120,9 +120,12 @@
 
   <target name="clear" description="Clear dirs">
     <phingcall target="drupal.clear"/>
-    <delete dir="${struct.code}" includeemptydirs="true" failonerror="true" quiet="true"/>
-    <delete dir="${struct.tmp}" includeemptydirs="true" failonerror="true"  quiet="true"/>
-    <delete dir="${struct.report}" includeemptydirs="true" failonerror="true" quiet="true"/>
+    <phingcall target="dir.clear">
+      <property name="dir" value="${struct.code}" override="TRUE"/>
+    </phingcall>
+    <phingcall target="dir.clear">
+      <property name="dir" value="${struct.tmp}" override="TRUE"/>
+    </phingcall>
     <echo>Cleaned directory</echo>
   </target>
 
@@ -137,8 +140,17 @@
     <phingcall target="selenium-stop"/>
   </target>
 
+  <target name="dir.clear">
+    <if>
+      <available file="${dir}" property="dir_exists"/>
+      <then>
+        <delete dir="${dir}" includeemptydirs="true" failonerror="true"/>
+      </then>
+    </if>
+  </target>
 
-    <!-- ### Setup file sets
+
+  <!-- ### Setup file sets
 
 Setup file sets - patterns for different aspects of the source code.
 These are used in other targets.

@@ -30,7 +30,11 @@
     </drush>
 
     <mkdir dir="${struct.code}/sites/${drupal.site.subdir}" mode="0777"/>
-    <mkdir dir="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777"/>
+    <phingcall target="dir.clear">
+      <property name="dir" value="${struct.code}/sites/${drupal.site.subdir}/files" override="TRUE"/>
+    </phingcall>
+    <symlinkEx target="${struct.files}" link="${struct.code}/sites/${drupal.site.subdir}/files"/>
+    <chmod file="${struct.code}/sites/${drupal.site.subdir}/files" mode="0777"/>
     <symlinkEx target="${struct.custom.modules}" link="${struct.code}/sites/all/modules/custom"/>
     <symlinkEx target="${struct.custom.themes}" link="${struct.code}/sites/all/themes/custom"/>
     <if>
