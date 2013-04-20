@@ -1,30 +1,31 @@
-# Drupal phing #
+# Drupal phing
+
 Drupal phing is environment for drupal developers
 allow to take control over the code and database.
 It makes possible real CI and CD for Drupal.
 
-## System requirements ##
+# System requirements
 
 IMPORTANT: Tested only on Ubuntu linux.
 Please report about other OS cases.
 Windows have a lot of problems.
 
-## Install requirements ##
+# Install requirements
 
-$ pear config-set auto_discover 1
-$ pear channel-discover pear.phing.info
-$ pear install --alldeps phing/phing-beta
-$ pear install --alldeps "channel://pear.php.net/VersionControl_SVN-0.4.0"
-$ pear install --alldeps "channel://pear.php.net/VersionControl_GIT-0.4.4"
-$ pear install --alldeps PHP_CodeSniffer
-$ pear channel-discover pear.phpmd.org
-$ pear channel-discover pear.pdepend.org
-$ pear install --alldeps phpmd/PHP_PMD
-$ pear install pear.phpunit.de/phpcpd
-$ pear channel-discover pear.pdepend.org
-$ pear install pdepend/PHP_Depend-beta
-$ apt-get install subversion
-$ sudo usermod -a -G www-data {user_name} 
+		$ pear config-set auto_discover 1
+		$ pear channel-discover pear.phing.info
+		$ pear install --alldeps phing/phing-beta
+		$ pear install --alldeps "channel://pear.php.net/VersionControl_SVN-0.4.0"
+		$ pear install --alldeps "channel://pear.php.net/VersionControl_GIT-0.4.4"
+		$ pear install --alldeps PHP_CodeSniffer
+		$ pear channel-discover pear.phpmd.org
+		$ pear channel-discover pear.pdepend.org
+		$ pear install --alldeps phpmd/PHP_PMD
+		$ pear install pear.phpunit.de/phpcpd
+		$ pear channel-discover pear.pdepend.org
+		$ pear install pdepend/PHP_Depend-beta
+		$ apt-get install subversion
+		$ sudo usermod -a -G www-data {user_name} 
 
 relogin
 
@@ -39,7 +40,7 @@ relogin
 Subversion install from this site
 http://subversion.tigris.org/
 
-## Config local environment ##
+# Config local environment
 
 Copy default properties example to default.prop environment file
 
@@ -51,7 +52,7 @@ $ cp build/properties/default.prop.example build/properties/{developer-name}.pro
 $ cd build/properties
 $ ln -s {developer-name}.prop default.prop
 
-## Install drupal ##
+# Install drupal
 
 Just run install phing target to install drupal and host.install target to install host.
 $ phing host.install
@@ -59,7 +60,8 @@ $ phing install
 
 Open drupal page in browser with host you define in local enviroment properties.
 
-## Directory structure ##
+# Directory structure
+
 Static directories (Not created in auto mode, stored in git and not cleaned with any phing targets)
 
 - build // Store build system
@@ -87,19 +89,19 @@ Dynamic directories (Created in automode, store some temporary files, can be cle
 - tools // Store additional tools required with build system.
 - deploy // Store drupal code ready to deploy to server
 
-## Phing targets ##
+# Phing targets
 
 # System
 
-$ phing -l  // List all avaliable task
-$ phing host.install // Creates virtual host
+  $ phing -l  // List all avaliable task
+  $ phing host.install // Creates virtual host
 
 # Development
 
-$ phing install // Install drupal from scratch
-$ phing reinstall // Remake code and run updates
-$ phing update  // Run updates
-$ phing remake // Remake code
+    $ phing install // Install drupal from scratch
+    $ phing reinstall // Remake code and run updates
+    $ phing update  // Run updates
+    $ phing remake // Remake code
 
 # Environments
 
