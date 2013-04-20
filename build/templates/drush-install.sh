@@ -21,7 +21,7 @@ if [ "$?" == "0" ]; then
 	echo "site installed"
 else
 	echo "site not installed"
-  commands[1] = '${DRUSH_BINARY} --root="${DRUPAL_ROOT}" --account-name="${DRUPAL_ACC_NAME}" --account-pass="${DRUPAL_ACC_PASS}" --account-mail="${DRUPAL_ACC_MAIL}" --locale="${DRUPAL_LOCALE}" --clean-url="${DRUPAL_CLEAN_URL}" --site-name="${DRUPAL_SITE_NAME}" --site-mail="${DRUPAL_SITE_MAIL}" --sites-subdir="${DRUPAL_SITES_SUBDIR}" --yes site-install ${DRUPAL_PROFILE} install_configure_form.locale="${DRUPAL_LOCALE}"'
+  commands[1]='${DRUSH_BINARY} --root="${DRUPAL_ROOT}" --account-name="${DRUPAL_ACC_NAME}" --account-pass="${DRUPAL_ACC_PASS}" --account-mail="${DRUPAL_ACC_MAIL}" --locale="${DRUPAL_LOCALE}" --clean-url="${DRUPAL_CLEAN_URL}" --site-name="${DRUPAL_SITE_NAME}" --site-mail="${DRUPAL_SITE_MAIL}" --sites-subdir="${DRUPAL_SITES_SUBDIR}" --yes site-install ${DRUPAL_PROFILE} install_configure_form.locale="${DRUPAL_LOCALE}"'
 fi
 commands[2]='${DRUSH_BINARY} --root="${DRUPAL_ROOT}" --user="1" --yes cache-clear drush'
 commands[3]='${DRUSH_BINARY} --root="${DRUPAL_ROOT}" --user="1" --yes solution_install'
