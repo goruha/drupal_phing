@@ -1,10 +1,6 @@
 #!/bin/bash
 
 
-if [ "${env.drush.php.path.enable}" == "1" ]; then
-  export DRUSH_PHP="${env.drush.php.path}"
-fi
-
 DRUSH_BINARY="$2"
 
 DRUPAL_ROOT="$1"
