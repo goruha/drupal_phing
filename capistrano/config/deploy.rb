@@ -63,7 +63,7 @@ namespace :deploy do
 
     desc "creation of the deployment directory"
     task :setup, :roles => :web do
-        run "umask 02 && mkdir -p #{deploy_to} #{deploy_to}/releases #{deploy_to}/#{resources_dir}"
+        run "umask 02 && mkdir -p #{deploy_to} #{deploy_to}/releases #{deploy_to}/#{resources_dir} #{deploy_to}/#{resources_dir}/backupdb"
     end
 
     desc "surcharge pour suppression du redemarrage"
