@@ -27,6 +27,7 @@ project.drupal.site.mail=site@admin.com
 project.drupal.db.driver=mysqli
 project.drupal.profile=solution_core
 project.drupal.translations.path=sites/all/translations
+project.drupal.files.dir=resources/files
 
 project.tmp.dir=/tmp
 

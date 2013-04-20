@@ -47,6 +47,8 @@
   <property name="struct.custom.modules" value="${struct.root}${project.custom.modules}"/>
   <property name="struct.custom.themes" value="${struct.root}${project.custom.themes}"/>
 
+  <property name="struct.files" value="${struct.root}/${project.drupal.files.dir}"/>
+
   <property name="struct.drake.scripts.dir" value="${struct.root}${project.drake.scripts.dir}"/>
   <property name="struct.deploy.package.dir" value="${struct.root}${project.deploy.package.dir}"/>
 
