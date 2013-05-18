@@ -4,7 +4,7 @@
         <echo>Project sql dump import started</echo>
         <phingcall target="db.drop"/>
         <drush command="sql-query" bin="${project.drush.bin}">
-            <option name="input-file">'${struct.root}${project.sql.dir}/${project.sql.file}'</option>
+            <option name="file">'${struct.db}/${project.sql.file}'</option>
             <option name="strict">'0'</option>
             <option name="root">'${struct.code}'</option>
         </drush>

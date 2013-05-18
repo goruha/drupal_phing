@@ -4,6 +4,7 @@ project.code.dir=/www
 
 project.sql.dir=/db
 project.sql.mask=*.mysql
+project.sql.file=dump.sql
 
 project.settings.use_default_dir=true
 

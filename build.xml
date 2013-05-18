@@ -28,6 +28,7 @@
   <property name="struct.build.templates" value="${struct.build}${project.build.templates.dir}"/>
 
   <property name="struct.code" value="${struct.root}${project.code.dir}"/>
+  <property name="struct.db" value="${struct.root}${project.sql.dir}"/>
 
   <property name="struct.tmp" value="${struct.root}${project.tmp.dir}"/>
 
