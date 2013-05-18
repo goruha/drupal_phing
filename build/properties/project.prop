@@ -8,7 +8,7 @@ project.sql.file=dump.sql
 
 project.settings.use_default_dir=true
 
-project.install.from_db=0
+project.install.from_db=1
 
 project.tools.dir=/tools
 
