@@ -92,8 +92,19 @@
 
 
   <target name="install" depends="clear" description="Install site">
-    <phingcall target="solr-run"/>
-    <phingcall target="drupal.install"/>
+    <if>
+      <equals arg1="${project.install.from_db}" arg2="true" casesensitive="false" trim="true"/>
+    <then>
+      <phingcall target="remake"/>
+      <phingcall target="solr-run"/>
+      <phingcall target="init"/>
+      <phingcall target="solution.install"/>
+    </then>
+    <else>
+      <phingcall target="solr-run"/>      
+      <phingcall target="drupal.install"/>
+    </else>
+    </if>
   </target>
 
   <target name="make" depends="clear" description="Install site">
@@ -151,6 +162,17 @@
       </then>
     </if>
   </target>
+
+  <target name="dir.ensure">
+    <if>
+      <not>
+        <available file="${dir}" property="dir_exists"/>
+      </not>
+      <then>
+        <mkdir dir="${dir}" mode="7777"/>
+      </then>
+    </if>
+  </target>  
 
 
   <!-- ### Setup file sets

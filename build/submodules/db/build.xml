@@ -2,12 +2,17 @@
 <project name="db" basedir=".">
     <target name="init" description="Create DB from dump">
         <echo>Project sql dump import started</echo>
+        <phingcall target="dir.ensure">
+          <property name="dir" value="${struct.tmp}" override="TRUE"/>
+        </phingcall>
+        <unzip file="${struct.db}/${project.sql.file}.zip" todir="${struct.tmp}" forceExtract="true"/>
         <phingcall target="db.drop"/>
         <drush command="sql-query" bin="${project.drush.bin}">
-            <option name="file">'${struct.db}/${project.sql.file}'</option>
+            <option name="file">'${struct.tmp}/${project.sql.file}'</option>
             <option name="strict">'0'</option>
             <option name="root">'${struct.code}'</option>
         </drush>
+        <delete dir="${struct.tmp}" failonerror="true"/>        
         <echo>Project sql dump import finished</echo>
     </target>
 
@@ -27,12 +32,23 @@
         <echo>Project db created</echo>
     </target>
 
+    <target name="snap">
+      <phingcall target="export">
+        <property name="db.export.path" value="${struct.db}/${project.sql.file}" override="TRUE" />  
+      </phingcall> 
+    </target>
+
     <target name="export">
+      <phingcall target="dir.ensure">
+        <property name="dir" value="${struct.tmp}/db_tmp" override="TRUE"/>
+      </phingcall>
       <drush command="sql-dump" bin="${project.drush.bin}" assume="yes">
         <option name="root">'${struct.code}'</option>
-        <option name="gzip"/>
-        <option name="result-file">'${project.db.export.path}'</option>
+        <option name="result-file">'${struct.tmp}/db_tmp/${project.sql.file}'</option>
       </drush>
+      <delete file="${db.export.path}.zip"/>
+      <zip destfile="${db.export.path}.zip" basedir="${struct.tmp}/db_tmp"/>
+      <delete dir="${struct.tmp}" failonerror="true"/>
       <echo>Project db dumped</echo>
     </target>
 </project>
