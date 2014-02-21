@@ -17,9 +17,9 @@ project.make.no.patches.txt=1
 
 project.build.templates.dir=/templates
 project.build.templates.vhost=vhost.tpl
-project.build.templates.settings=settings.php.7.tpl
+project.build.templates.settings=settings.php.8.tpl
 
-project.drupal.version=7
+project.drupal.version=8
 project.drupal.admin.name=admin
 project.drupal.admin.password=admin
 project.drupal.admin.mail=admin@admin.com
@@ -28,7 +28,7 @@ project.drupal.clean_url=1
 project.drupal.site.name=Site name
 project.drupal.site.mail=site@admin.com
 project.drupal.db.driver=mysqli
-project.drupal.profile=solution_core
+project.drupal.profile=default
 project.drupal.translations.path=sites/all/translations
 project.drupal.files.dir=resources/files
 
